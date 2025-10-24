@@ -1,0 +1,13 @@
+#获取bundle ID
+ideviceinstaller -l 
+
+#获取device ID
+device_id -l 
+
+#获取IP
+ifconfig | grep inet
+
+appium -a 0.0.0.0 -p 4724
+
+com.meitu.MTKingEnterprise
+python3 main/run_ui.py --bundleId com.meitu.EveShiseidocicEnterprise --test tests/test_ui_flow.yaml --base_port 4723 --device 23M4

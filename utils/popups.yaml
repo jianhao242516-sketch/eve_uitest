@@ -1,0 +1,73 @@
+# 弹窗元素配置文件
+# 当查找元素失败时，系统会自动检查这些弹窗并尝试点击关闭
+
+popups:
+  # 权限相关弹窗
+  - xpath: "//XCUIElementTypeButton[@name='允许']"
+    description: "权限允许按钮"
+  - xpath: "//XCUIElementTypeButton[@name='Allow']"
+    description: "权限允许按钮(英文)"
+  - xpath: "//XCUIElementTypeButton[@name='好']"
+    description: "确认按钮"
+  - xpath: "//XCUIElementTypeButton[@name='OK']"
+    description: "确认按钮(英文)"
+  - xpath: "//XCUIElementTypeButton[@name='确定']"
+    description: "确定按钮"
+  - xpath: "//XCUIElementTypeButton[@name='取消']"
+    description: "取消按钮"
+  - xpath: "//XCUIElementTypeButton[@name='Cancel']"
+    description: "取消按钮(英文)"
+
+  # 系统弹窗
+  - xpath: "//XCUIElementTypeButton[@name='继续']"
+    description: "继续按钮"
+  - xpath: "//XCUIElementTypeButton[@name='Continue']"
+    description: "继续按钮(英文)"
+  - xpath: "//XCUIElementTypeButton[@name='稍后']"
+    description: "稍后按钮"
+  - xpath: "//XCUIElementTypeButton[@name='Later']"
+    description: "稍后按钮(英文)"
+
+  # 网络相关弹窗
+  - xpath: "//XCUIElementTypeButton[@name='重试']"
+    description: "重试按钮"
+  - xpath: "//XCUIElementTypeButton[@name='Retry']"
+    description: "重试按钮(英文)"
+
+  # 通用关闭按钮
+  - xpath: "//XCUIElementTypeButton[@name='关闭']"
+    description: "关闭按钮"
+  - xpath: "//XCUIElementTypeButton[@name='Close']"
+    description: "关闭按钮(英文)"
+  - xpath: "//XCUIElementTypeButton[@name='×']"
+    description: "X关闭按钮"
+
+  # 广告弹窗
+  - xpath: "//XCUIElementTypeButton[@name='跳过']"
+    description: "跳过按钮"
+  - xpath: "//XCUIElementTypeButton[@name='Skip']"
+    description: "跳过按钮(英文)"
+
+  # 应用特定弹窗（可以根据实际应用添加）
+  - xpath: "//XCUIElementTypeButton[@name='我知道了']"
+    description: "我知道了按钮"
+  - xpath: "//XCUIElementTypeButton[@name='不再提醒']"
+    description: "不再提醒按钮"
+  - xpath: "//XCUIElementTypeButton[@name='立即更新']"
+    description: "立即更新按钮"
+  - xpath: "//XCUIElementTypeButton[@name='稍后更新']"
+    description: "稍后更新按钮"
+  
+  # Apple账号验证相关弹窗
+  - xpath: "//XCUIElementTypeButton[@name='以后']"
+    description: "Apple账号验证-以后按钮"
+  - xpath: "//XCUIElementTypeButton[@name='Later']"
+    description: "Apple账号验证-以后按钮(英文)"
+  - xpath: "//XCUIElementTypeButton[@name='稍后']"
+    description: "Apple账号验证-稍后按钮"
+  - xpath: "//XCUIElementTypeButton[@name='跳过']"
+    description: "Apple账号验证-跳过按钮"
+  - xpath: "//XCUIElementTypeButton[@name='不，谢谢']"
+    description: "Apple账号验证-不谢谢按钮"
+  - xpath: "//XCUIElementTypeButton[@name='No Thanks']"
+    description: "Apple账号验证-不谢谢按钮(英文)"

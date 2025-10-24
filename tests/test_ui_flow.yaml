@@ -1,0 +1,24 @@
+- name: '搜索用户测试'
+  steps:
+    - page: 'HomePage'
+      actions:
+        - method: 'click_searchuser'
+        - method: 'input_searchuser'
+          params: 'ruby'
+        - method: 'wait'
+          params: 1
+        - method: 'click_searchresult1'
+        - method: 'wait'
+          params: 2
+    - page: 'UserProfilePage'
+      actions:
+        - method: 'click_startdetect'
+    - page: 'DetectPage'
+      actions:
+        - method: 'click_still'
+        - method: 'wait'
+          params: 200
+    - page: 'ReportPage'
+      actions:
+        - method: 'assert_element_exists'
+          params: 'ReportPage.zhfx'

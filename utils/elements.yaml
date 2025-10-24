@@ -1,0 +1,51 @@
+# 元素库 - 统一管理所有页面的元素定位器
+# 格式: 页面名称 -> 元素名称 -> [定位方式, 定位器]
+
+HomePage:
+  searchuser: ['xpath', "//XCUIElementTypeTextField"]
+  searchresult1: ['xpath', "//XCUIElementTypeCollectionView/XCUIElementTypeCell[1]/XCUIElementTypeOther"]
+  search_button: ['xpath', "//XCUIElementTypeButton[@name='搜索']"]
+  
+UserProfilePage:
+  start_detect_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
+  user_avatar: ['xpath', "//XCUIElementTypeImage[@name='头像']"]
+  username_label: ['xpath', "//XCUIElementTypeStaticText[@name='用户名']"]
+  
+DetectPage:
+  camera_button: ['xpath', "//XCUIElementTypeButton[@name='拍照']"]
+  still_button: ['xpath', "//XCUIElementTypeStaticText[@name='仍旧拍摄']"]
+  video_button: ['xpath', "//XCUIElementTypeButton[@name='视频检测']"]
+  result_label: ['xpath', "//XCUIElementTypeStaticText[@name='检测结果']"]
+  detect_next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
+  shooting_button: ['xpath', "//XCUIElementTypeStaticText[@name='拍摄中...']"]
+  cj_confirm_button: ['xpath', "//XCUIElementTypeStaticText[@name='确认']"]
+  cj_retake_button: ['xpath', "//XCUIElementTypeStaticText[@name='重新拍摄']"]
+  
+LoginPage:
+  username_input: ['xpath', "//XCUIElementTypeTextField[@name='用户名输入框']"]
+  password_input: ['xpath', "//XCUIElementTypeSecureTextField[@name='密码输入框']"]
+  login_button: ['xpath', "//XCUIElementTypeButton[@name='登录']"]
+  error_message: ['xpath', "//XCUIElementTypeStaticText[@name='错误提示']"]
+
+Reportpage:
+  zhfx: ['xpath', "//XCUIElementTypeStaticText[@name='综合分析']"]
+
+# 新增页面元素定义
+CjSearchXmPage:
+  project_search_input: ['xpath', "//XCUIElementTypeStaticText[@name='请输入科研项目编号']"]
+  first_project_result: ['xpath', "//XCUIElementTypeCollectionView/XCUIElementTypeCell[1]"]
+
+CjSearchUserPage:
+  user_search_input: ['xpath', "//XCUIElementTypeStaticText[@name='请输入受测者ID']"]
+  only_one_user: ['xpath', "//XCUIElementTypeCell/XCUIElementTypeOther"] 
+  first_user_result: ['xpath', "//XCUIElementTypeCollectionView/XCUIElementTypeCell[1]/XCUIElementTypeOther"]
+  back_button: ['xpath', "//XCUIElementTypeImage[@name='icon_nav_back']"]
+
+CjUserPage:
+  start_collect_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始采集']"]
+  back_button: ['xpath', "//XCUIElementTypeImage[@name='icon_nav_back']"]
+  is_CjUserPage: ['xpath', "//XCUIElementTypeStaticText[@name='受测者编号：']"]
+
+VideoDetectPage:
+  start_video_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始录制']"]
+  save_button: ['xpath', "//XCUIElementTypeStaticText[@name='保存']"]

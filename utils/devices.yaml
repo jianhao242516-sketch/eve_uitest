@@ -1,0 +1,12 @@
+devices:
+  - name: "iPad_01"
+    udid: "00008110-001A2B3C0D123456"
+    platformName: "iOS"
+
+  - name: "23M4"
+    udid: "00008132-000C28E63C39001C"
+    platformName: "iOS"
+
+  - name: "iPad_03"
+    udid: "00008130-001A2B3C0D987654"
+    platformName: "iOS"

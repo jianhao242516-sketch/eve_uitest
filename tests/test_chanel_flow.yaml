@@ -1,0 +1,112 @@
+- name: 'chanel流程测试-sublime'
+  steps:
+    - page: 'ChanelPage'
+      actions:
+        - method: 'click_element'
+          params: 'newconsultation_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'continue_as_guest_button'
+        - method: 'wait'
+          params: 5
+        - method: 'click_element'
+          params: 'question_skip_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'go_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'accept_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'yes_button_1'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'yes_button_2'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'yes_button_3'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'yes_button_4'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'start_skincare_consultation_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'yes_button_5'
+        - method: 'wait'
+          params: 2
+        - method: 'wait_for_element_to_appear'
+          params: ['report_button', 360]
+        - method: 'click_element'
+          params: 'report_button'
+        - method: 'wait'
+          params: 2
+        - method: 'take_screenshot'
+          params: 'end'
+- name: 'chanel流程测试-nosublime'
+  steps:
+    - page: 'ChanelPage'
+      actions:
+        - method: 'click_element'
+          params: 'newconsultation_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'continue_as_guest_button'
+        - method: 'wait'
+          params: 5
+        - method: 'click_element'
+          params: 'question_skip_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'go_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'accept_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'no_button_1'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'no_button_2'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'no_button_3'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'no_button_4'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'start_skincare_consultation_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'yes_button_5'
+        - method: 'wait'
+          params: 2
+        - method: 'wait_for_element_to_appear'
+          params: ['report_button', 360]
+        - method: 'click_element'
+          params: 'report_button'
+        - method: 'wait'
+          params: 2
+        - method: 'take_screenshot'
+          params: 'end'

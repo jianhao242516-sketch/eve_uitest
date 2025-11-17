@@ -34,10 +34,23 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
     with open(yaml_path, 'r', encoding='utf-8') as f:
         cases = yaml.safe_load(f)
 
-    for case in cases:
-        logger.log(f"开始用例: {case.get('name')}")
+    for case_index, case in enumerate(cases):
+        logger.log(f"开始用例 ({case_index + 1}/{len(cases)}): {case.get('name')}")
         test_results['total'] += 1
         case_failed = False  # 用例失败标志
+        
+        # 设置用例索引环境变量，供截图功能使用
+        import os
+        os.environ['CURRENT_CASE_INDEX'] = str(case_index + 1)
+        
+        # 每个用例开始时重启APP，确保环境干净
+        try:
+            logger.log(f"🔄 重启APP为用例做好准备...")
+            restart_app(driver, bundle_id)
+            logger.log(f"✅ APP已重启")
+            time.sleep(2)  # 给APP一点启动时间
+        except Exception as e:
+            logger.log(f"⚠️ 重启APP失败: {e}")
         
         for step in case.get('steps', []):
             if case_failed:  # 如果用例已失败，跳过后续步骤
@@ -45,11 +58,36 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                 
             page_name = step.get('page')
             actions = step.get('actions', [])
-            # module = __import__(f"pages.{page_name.lower()}", fromlist=[page_name])
-            import re
-            module_name = re.sub(r'(?<!^)(?=[A-Z])', '_', page_name).lower()  # LoginPage -> login_page
-            module = __import__(f"pages.{module_name}", fromlist=[page_name])
-            page_class = getattr(module, page_name)
+            
+            # 尝试加载页面类，如果不存在则动态创建
+            page_class = None
+            try:
+                import re
+                module_name = re.sub(r'(?<!^)(?=[A-Z])', '_', page_name).lower()  # LoginPage -> login_page
+                module = __import__(f"pages.{module_name}", fromlist=[page_name])
+                page_class = getattr(module, page_name, None)
+            except (ImportError, AttributeError) as e:
+                logger.log(f"⚠️ 页面类 {page_name} 不存在，将动态创建")
+            
+            # 如果页面类不存在，动态创建
+            if page_class is None:
+                from pages.base_page import BasePage
+                
+                # 动态创建页面类
+                def __init__(self, driver):
+                    BasePage.__init__(self, driver)
+                    self.page_name = page_name
+                
+                # 创建类字典
+                class_dict = {
+                    '__init__': __init__,
+                    'page_name': page_name
+                }
+                
+                # 动态创建类
+                page_class = type(page_name, (BasePage,), class_dict)
+                logger.log(f"✅ 已动态创建页面类: {page_name}")
+            
             page = page_class(driver)
             
             for action in actions:
@@ -123,6 +161,11 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
         else:
             logger.log(f"✅ 用例通过: {case.get('name')}")
             test_results['passed'] += 1
+        
+        # 用例之间等待，确保串行执行
+        if case_index < len(cases) - 1:  # 不是最后一个用例
+            logger.log(f"⏳ 等待3秒后执行下一个用例...")
+            time.sleep(3)
 
     try:
         driver.quit()

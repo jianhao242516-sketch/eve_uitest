@@ -1,0 +1,142 @@
+#直接根据元素操作 
+# - name: '采集流程测试 '
+#   steps:
+#     - page: 'CjSearchXmPage'
+#       actions:
+#         # - method: 'check_and_handle_popups'
+#         #   params: 3
+#         - method: 'click_element'
+#           params: 'project_search_input'
+#         - method: 'send_keys_element'
+#           params: ['project_search_input', '075917']
+#         - method: 'wait'
+#           params: 2
+#         - method: 'click_element'
+#           params: 'first_project_result'
+#         - method: 'wait'
+#           params: 2
+#     - page: 'CjSearchUserPage'
+#       actions:
+#         - method: 'click_element'
+#           params: 'user_search_input'
+#         - method: 'send_keys_element'
+#           params: ['user_search_input', '075917002']
+#         - method: 'wait'
+#           params: 2
+#         - method: 'click_element'
+#           params: 'only_one_user'
+#         - method: 'wait'
+#           params: 2
+#     - page: 'CjUserPage'
+#       actions:
+#         - method: 'screenshot'
+#           params: 'userpage'
+#         - method: 'click_element'
+#           params: 'start_collect_button'
+#         - method: 'wait'
+#           params: 2
+#     - page: 'DetectPage'
+#       actions:
+#         - method: 'click_element'
+#           params: 'still_button'
+#         # - method: 'wait_for_element_to_disappear'
+#         #   params: ['shooting_button', 30]
+#         # - method: 'wait'
+#         #   params: 5
+#         # - method: 'click_element'
+#         #   params: 'detect_next_button'
+#         # - method: 'wait'
+#         #   params: 3
+#     # - page: 'VideoDetectPage'
+#     #   actions:
+#     #     - method: 'wait_for_element_to_appear'
+#     #       params: ['start_video_button', 5]
+#     #     - method: 'click_element'
+#     #       params: 'start_video_button'
+#     #     - method: 'wait' 
+#     #       params: 13
+#     #     - method: 'click_element'
+#     #       params: 'start_video_button'
+#     #     - method: 'wait'
+#     #       params: 13
+#     #     - method: 'click_element'
+#     #       params: 'start_video_button'
+#     #     - method: 'wait'
+#         #   params: 13
+#         # - method: 'click_element'
+#         #   params: 'start_video_button'
+#         # - method: 'wait'
+#         #   params: 13
+#         # - method: 'click_element'
+#         #   params: 'start_video_button'
+#         # - method: 'wait'
+#         #   params: 13
+#         # - method: 'click_element'
+#         #   params: 'start_video_button'
+#         # - method: 'wait'
+#         #   params: 16
+#         # - method: 'click_element'
+#         #   params: 'save_button'
+#     - page: 'CjUserPage'
+#       actions:
+#         - method: 'wait_for_element_to_appear'
+#           params: ['is_CjUserPage', 360]
+#         - method: 'screenshot'
+#           params: 'end'
+#         - method: 'assert_element_exists'
+#           params: 'CjUserPage.is_CjUserPage'
+
+- name: '采集流程测试-视频不采集返回 '
+  steps:
+    - page: 'CjSearchXmPage'
+      actions:
+        # - method: 'check_and_handle_popups'
+        #   params: 3
+        - method: 'click_element'
+          params: 'project_search_input'
+        - method: 'send_keys_element'
+          params: ['project_search_input', '11']
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'first_project_result'
+        - method: 'wait'
+          params: 2
+    - page: 'CjSearchUserPage'
+      actions:
+        - method: 'click_element'
+          params: 'user_search_input'
+        - method: 'send_keys_element'
+          params: ['user_search_input', '11']
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'only_one_user'
+        - method: 'wait'
+          params: 2
+    - page: 'CjUserPage'
+      actions:
+        - method: 'click_element'
+          params: 'start_collect_button'
+        - method: 'wait'
+          params: 2
+    - page: 'DetectPage'
+      actions:
+        - method: 'click_element'
+          params: 'still_button'
+        - method: 'wait_for_element_to_disappear'
+          params: ['shooting_button', 30]
+        - method: 'wait'
+          params: 5
+        - method: 'click_element'
+          params: 'back_button'
+        - method: 'click_element'
+          params: 'confirm_button'
+        - method: 'wait'
+          params: 3
+    - page: 'CjUserPage'
+      actions:
+        - method: 'click_element'
+          params: 'back_button'
+        - method: 'wait'
+          params: 2

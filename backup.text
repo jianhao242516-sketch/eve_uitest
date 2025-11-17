@@ -10,4 +10,9 @@ ifconfig | grep inet
 appium -a 0.0.0.0 -p 4724
 
 com.meitu.MTKingEnterprise
-python3 main/run_ui.py --bundleId com.meitu.EveShiseidocicEnterprise --test tests/test_ui_flow.yaml --base_port 4723 --device 23M4
+python3 main/run_ui.py --bundleId com.evelabinsight.MTKingEnterprise --test tests/test_ui_flow.yaml --base_port 4723 --device iPad20
+
+python3 main/run_ui.py --bundleId com.meitu.EveChannel --test tests/test_chanel_flow.yaml --base_port 4723 --device iPad20 --times 30
+
+
+git:

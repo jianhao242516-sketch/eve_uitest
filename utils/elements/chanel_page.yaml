@@ -1,0 +1,20 @@
+# Chanel页面元素定义
+ChanelPage:
+  newconsultation_button: ['xpath', "//XCUIElementTypeStaticText[@name='NEW CONSULTATION']"]
+  continue_as_guest_button: ['xpath', "//XCUIElementTypeButton[@name='Continue as a guest']"]
+  question_next_button: ['xpath', "//XCUIElementTypeImage[@name='icon_question_next']"]
+  question_skip_button: ['xpath', "//XCUIElementTypeStaticText[@name='SKIP QUESTIONNAIRE']"]
+  go_button: ['xpath', "//XCUIElementTypeStaticText[@name='GO']"]
+  accept_button: ['xpath', "//XCUIElementTypeStaticText[@name='ACCEPT']"]
+  yes_button_1: ['xpath', "(//XCUIElementTypeStaticText[@name='YES'])[1]"]
+  yes_button_2: ['xpath', "(//XCUIElementTypeStaticText[@name='YES'])[2]"]
+  yes_button_3: ['xpath', "(//XCUIElementTypeStaticText[@name='YES'])[3]"]
+  yes_button_4: ['xpath', "(//XCUIElementTypeStaticText[@name='YES'])[4]"]
+  no_button_1: ['xpath', "(//XCUIElementTypeStaticText[@name='NO'])[1]"]
+  no_button_2: ['xpath', "(//XCUIElementTypeStaticText[@name='NO'])[2]"]
+  no_button_3: ['xpath', "(//XCUIElementTypeStaticText[@name='NO'])[3]"]
+  no_button_4: ['xpath', "(//XCUIElementTypeStaticText[@name='NO'])[4]"]
+  start_skincare_consultation_button: ['xpath', "//XCUIElementTypeStaticText[@name='START SKINCARE CONSULTATION']"]
+  yes_button_5: ['xpath', "(//XCUIElementTypeStaticText[@name='YES'])[5]"]
+  report_button: ['xpath', "//XCUIElementTypeStaticText[@name='SKINCARE RITUAL']"]
+

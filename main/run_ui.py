@@ -60,6 +60,13 @@ def main():
 
     logger.log(f'开始执行测试，共执行 {args.times} 次')
     
+    # 设置运行时间戳（整个测试开始的时间）
+    import os
+    from datetime import datetime
+    run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    os.environ['RUN_START_TIMESTAMP'] = run_timestamp
+    logger.log(f'📸 截图目录: screenshots/run_{run_timestamp}/')
+    
     for run_number in range(1, args.times + 1):
         logger.log(f'=' * 60)
         logger.log(f'第 {run_number}/{args.times} 次执行开始')

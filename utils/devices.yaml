@@ -10,3 +10,6 @@ devices:
   - name: "iPad_03"
     udid: "00008130-001A2B3C0D987654"
     platformName: "iOS"
+  - name: "iPad20"
+    udid: "00008112-00093924228B401E"
+    platformName: "iOS"

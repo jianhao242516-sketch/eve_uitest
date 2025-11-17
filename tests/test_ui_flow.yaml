@@ -2,23 +2,38 @@
   steps:
     - page: 'HomePage'
       actions:
-        - method: 'click_searchuser'
-        - method: 'input_searchuser'
-          params: 'ruby'
+        # - method: 'check_and_handle_popups'
+        #   params: 3
+        - method: 'click_element'
+          params: 'searchuser'
+        - method: 'send_keys_element'
+          params: ['searchuser', 'ruby']
         - method: 'wait'
           params: 1
-        - method: 'click_searchresult1'
+        - method: 'click_element'
+          params: 'searchresult1'
         - method: 'wait'
           params: 2
+        - method: 'screenshot'
+          params: 'search_result'
     - page: 'UserProfilePage'
       actions:
-        - method: 'click_startdetect'
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'screenshot'
+          params: 'start_detect_button'
     - page: 'DetectPage'
       actions:
-        - method: 'click_still'
         - method: 'wait'
-          params: 200
+          params: 2
+        - method: 'click_element'
+          params: 'still_button'
     - page: 'ReportPage'
       actions:
-        - method: 'assert_element_exists'
-          params: 'ReportPage.zhfx'
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 200]
+        - method: 'swipe_up'
+        - method: 'screenshot'
+          params: 'end'
+        # - method: 'swipe_down'
+

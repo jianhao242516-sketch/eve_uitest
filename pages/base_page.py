@@ -19,11 +19,59 @@ class BasePage:
         self._load_popups()
     
     def _load_elements(self):
-        """加载元素配置文件"""
+        """加载元素配置文件
+        支持两种方式：
+        1. 从 utils/elements/ 目录加载所有 .yaml 文件（推荐）
+        2. 从 utils/elements.yaml 加载（向后兼容）
+        """
         if BasePage._elements is None:
-            elements_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'utils', 'elements.yaml')
-            with open(elements_file, 'r', encoding='utf-8') as f:
-                BasePage._elements = yaml.safe_load(f)
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            elements_dir = os.path.join(base_dir, 'utils', 'elements')
+            elements_file = os.path.join(base_dir, 'utils', 'elements.yaml')
+            
+            BasePage._elements = {}
+            
+            # 优先从 elements 目录加载
+            if os.path.exists(elements_dir) and os.path.isdir(elements_dir):
+                print(f"📂 从目录加载元素: {elements_dir}")
+                # 扫描目录下所有 .yaml 文件
+                yaml_files = [f for f in os.listdir(elements_dir) if f.endswith('.yaml') or f.endswith('.yml')]
+                
+                if yaml_files:
+                    for yaml_file in sorted(yaml_files):
+                        file_path = os.path.join(elements_dir, yaml_file)
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                file_elements = yaml.safe_load(f)
+                                if file_elements:
+                                    # 合并元素定义（如果同一个页面在多个文件中定义，后面的会覆盖前面的）
+                                    for page_name, page_elements in file_elements.items():
+                                        if page_name in BasePage._elements:
+                                            # 合并同一页面的元素
+                                            BasePage._elements[page_name].update(page_elements)
+                                        else:
+                                            BasePage._elements[page_name] = page_elements
+                                    print(f"  ✅ 已加载: {yaml_file}")
+                        except Exception as e:
+                            print(f"  ⚠️ 加载文件失败 {yaml_file}: {e}")
+                    
+                    if BasePage._elements:
+                        print(f"📊 共加载 {len(BasePage._elements)} 个页面的元素定义")
+                        return
+            
+            # 如果目录不存在或为空，尝试加载单个文件（向后兼容）
+            if os.path.exists(elements_file):
+                print(f"📄 从文件加载元素: {elements_file}")
+                try:
+                    with open(elements_file, 'r', encoding='utf-8') as f:
+                        BasePage._elements = yaml.safe_load(f) or {}
+                        print(f"✅ 已加载元素文件")
+                except Exception as e:
+                    print(f"❌ 加载元素文件失败: {e}")
+                    BasePage._elements = {}
+            else:
+                print(f"⚠️ 未找到元素配置文件: {elements_file} 或目录: {elements_dir}")
+                BasePage._elements = {}
     
     def _load_popups(self):
         """加载弹窗配置文件"""
@@ -93,10 +141,223 @@ class BasePage:
             print(f"❌ 点击元素失败: {element_name} - {e}")
             return False
 
+    def send_keys_element(self, element_name, value):
+        """直接向元素输入文本 - 简化方法
+        
+        Args:
+            element_name: 元素名称，格式为 "页面名.元素名" 或直接元素名
+            value: 要输入的文本
+        """
+        try:
+            if '.' in element_name:
+                # 格式: "页面名.元素名"
+                page_name, element = element_name.split('.', 1)
+                by, locator = self._get_locator(page_name, element)
+            else:
+                # 直接元素名，使用当前页面
+                by, locator = self._get_locator(self.page_name, element_name)
+            
+            self.send_keys(by, locator, value)
+            print(f"✅ 已向元素 {element_name} 输入文本: {value}")
+            return True
+        except Exception as e:
+            print(f"❌ 向元素输入文本失败: {element_name} - {e}")
+            return False
+
     def click(self, by, locator):
         """点击元素"""
         el = self.find(by, locator)
         el.click()
+
+    def click_by_coordinates(self, x, y):
+        """通过坐标点击
+        
+        Args:
+            x: X坐标
+            y: Y坐标
+        """
+        try:
+            x, y = int(x), int(y)
+            print(f"🎯 点击坐标: ({x}, {y})")
+            
+            self.driver.tap([(x, y)])
+            
+            print(f"✅ 已点击坐标: ({x}, {y})")
+            return True
+            
+        except Exception as e:
+            print(f"❌ 点击坐标失败: ({x}, {y}) - {e}")
+            return False
+
+    def tap(self, x, y, duration=100):
+        """轻触坐标（tap）
+        
+        Args:
+            x: X坐标
+            y: Y坐标
+            duration: 持续时间（毫秒），默认100ms
+        """
+        try:
+            x, y = int(x), int(y)
+            duration = int(duration)
+            print(f"🎯 轻触坐标: ({x}, {y}), 持续时间: {duration}ms")
+            
+            self.driver.tap([(x, y)], duration)
+            
+            print(f"✅ 已轻触坐标: ({x}, {y})")
+            return True
+            
+        except Exception as e:
+            print(f"❌ 轻触坐标失败: ({x}, {y}) - {e}")
+            return False
+
+    def swipe(self, start_x, start_y, end_x, end_y, duration=1000):
+        """滑动操作
+        
+        Args:
+            start_x: 起始X坐标
+            start_y: 起始Y坐标
+            end_x: 结束X坐标
+            end_y: 结束Y坐标
+            duration: 滑动持续时间（毫秒），默认1000ms
+        """
+        try:
+            start_x, start_y = int(start_x), int(start_y)
+            end_x, end_y = int(end_x), int(end_y)
+            duration = int(duration)
+            
+            print(f"↔️ 滑动: ({start_x}, {start_y}) -> ({end_x}, {end_y}), 持续时间: {duration}ms")
+            
+            self.driver.swipe(start_x, start_y, end_x, end_y, duration)
+            
+            print(f"✅ 已滑动到: ({end_x}, {end_y})")
+            return True
+            
+        except Exception as e:
+            print(f"❌ 滑动失败: ({start_x}, {start_y}) -> ({end_x}, {end_y}) - {e}")
+            return False
+
+    def swipe_up(self, start_y=None, distance=500):
+        """向上滑动
+        
+        Args:
+            start_y: 起始Y坐标（可选，默认屏幕中部）
+            distance: 滑动距离（像素），默认500
+        """
+        try:
+            # 获取屏幕尺寸
+            size = self.driver.get_window_size()
+            width = size['width']
+            height = size['height']
+            
+            # 默认从屏幕中部向上滑动
+            if start_y is None:
+                start_y = height // 2
+            
+            start_y = int(start_y)
+            distance = int(distance)
+            
+            start_x = width // 2
+            end_x = start_x
+            end_y = start_y - distance
+            
+            print(f"⬆️ 向上滑动: 距离={distance}px")
+            
+            return self.swipe(start_x, start_y, end_x, end_y)
+            
+        except Exception as e:
+            print(f"❌ 向上滑动失败: {e}")
+            return False
+
+    def swipe_down(self, start_y=None, distance=500):
+        """向下滑动
+        
+        Args:
+            start_y: 起始Y坐标（可选，默认屏幕中部）
+            distance: 滑动距离（像素），默认500
+        """
+        try:
+            size = self.driver.get_window_size()
+            width = size['width']
+            height = size['height']
+            
+            if start_y is None:
+                start_y = height // 2
+            
+            start_y = int(start_y)
+            distance = int(distance)
+            
+            start_x = width // 2
+            end_x = start_x
+            end_y = start_y + distance
+            
+            print(f"⬇️ 向下滑动: 距离={distance}px")
+            
+            return self.swipe(start_x, start_y, end_x, end_y)
+            
+        except Exception as e:
+            print(f"❌ 向下滑动失败: {e}")
+            return False
+
+    def swipe_left(self, start_x=None, distance=300):
+        """向左滑动
+        
+        Args:
+            start_x: 起始X坐标（可选，默认屏幕中部）
+            distance: 滑动距离（像素），默认300
+        """
+        try:
+            size = self.driver.get_window_size()
+            width = size['width']
+            height = size['height']
+            
+            if start_x is None:
+                start_x = width // 2
+            
+            start_x = int(start_x)
+            distance = int(distance)
+            
+            start_y = height // 2
+            end_y = start_y
+            end_x = start_x - distance
+            
+            print(f"⬅️ 向左滑动: 距离={distance}px")
+            
+            return self.swipe(start_x, start_y, end_x, end_y)
+            
+        except Exception as e:
+            print(f"❌ 向左滑动失败: {e}")
+            return False
+
+    def swipe_right(self, start_x=None, distance=300):
+        """向右滑动
+        
+        Args:
+            start_x: 起始X坐标（可选，默认屏幕中部）
+            distance: 滑动距离（像素），默认300
+        """
+        try:
+            size = self.driver.get_window_size()
+            width = size['width']
+            height = size['height']
+            
+            if start_x is None:
+                start_x = width // 2
+            
+            start_x = int(start_x)
+            distance = int(distance)
+            
+            start_y = height // 2
+            end_y = start_y
+            end_x = start_x + distance
+            
+            print(f"➡️ 向右滑动: 距离={distance}px")
+            
+            return self.swipe(start_x, start_y, end_x, end_y)
+            
+        except Exception as e:
+            print(f"❌ 向右滑动失败: {e}")
+            return False
 
     def send_keys(self, by, locator, value):
         """输入文本"""
@@ -112,6 +373,8 @@ class BasePage:
     def screenshot(self, name=None, timestamp=True):
         """截图方法
         
+        目录结构: screenshots/run_{运行时间戳}/times_{执行次数}/case_{用例序号}/
+        
         Args:
             name: 截图文件名，如果不指定则自动生成
             timestamp: 是否在文件名中添加时间戳
@@ -120,23 +383,22 @@ class BasePage:
         import time
         from datetime import datetime
         
-        # 创建截图目录 - 每次运行一个文件夹
+        # 基础截图目录
         base_screenshot_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'screenshots')
         
-        # 获取运行次数信息（从环境变量或默认值）
+        # 获取运行信息（从环境变量或默认值）
+        run_start_timestamp = os.environ.get('RUN_START_TIMESTAMP', datetime.now().strftime("%Y%m%d_%H%M%S"))
         run_number = os.environ.get('CURRENT_RUN_NUMBER', '1')
-        run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        screenshot_dir = os.path.join(base_screenshot_dir, f"run_{run_number}_{run_timestamp}")
+        case_index = os.environ.get('CURRENT_CASE_INDEX', '1')
         
-        # 如果文件夹已存在，添加序号
-        counter = 1
-        original_dir = screenshot_dir
-        while os.path.exists(screenshot_dir):
-            screenshot_dir = f"{original_dir}_{counter}"
-            counter += 1
+        # 构建目录结构: screenshots/run_{时间戳}/times_{次数}/case_{用例序号}/
+        run_dir = os.path.join(base_screenshot_dir, f"run_{run_start_timestamp}")
+        times_dir = os.path.join(run_dir, f"times_{run_number}")
+        case_dir = os.path.join(times_dir, f"case_{case_index}")
         
-        if not os.path.exists(screenshot_dir):
-            os.makedirs(screenshot_dir)
+        # 创建目录（如果不存在）
+        if not os.path.exists(case_dir):
+            os.makedirs(case_dir, exist_ok=True)
         
         # 生成文件名
         if name is None:
@@ -152,7 +414,7 @@ class BasePage:
             name += '.png'
         
         # 完整路径
-        file_path = os.path.join(screenshot_dir, name)
+        file_path = os.path.join(case_dir, name)
         
         try:
             self.driver.save_screenshot(file_path)
@@ -176,7 +438,8 @@ class BasePage:
         import time
         try:
             by, locator = self._get_locator(self.page_name, element_name)
-            print("等待元素出现,超时时间", timeout, "元素", by, locator)
+            print(f"⏳ 等待元素出现: {element_name}, 超时时间: {timeout}秒")
+            print(f"📍 元素定位: {by}={locator}")
         except ValueError as e:
             print(f"❌ 错误: {e}")
             print(f"💡 提示: 请检查 elements.yaml 中 {self.page_name} 页面是否定义了 '{element_name}' 元素")
@@ -184,10 +447,12 @@ class BasePage:
         
         start_time = time.time()
         while time.time() - start_time < timeout:
-            if self.is_element_present(by, locator, timeout=1):
+            if self.is_element_present(by, locator, timeout=0.5):
+                print(f"✅ 元素 {element_name} 已出现")
                 return True
             time.sleep(0.5)  # 每0.5秒检查一次
         
+        print(f"⏰ 等待元素 {element_name} 出现超时 ({timeout}秒)")
         return False  # 超时
 
     def wait_for_element_to_disappear(self, element_name, timeout=30):
@@ -195,18 +460,28 @@ class BasePage:
         import time
         try:
             by, locator = self._get_locator(self.page_name, element_name)
-            print("等待元素消失,超时时间", timeout, "元素", by, locator)
+            print(f"⏳ 等待元素消失: {element_name}, 超时时间: {timeout}秒")
+            print(f"📍 元素定位: {by}={locator}")
         except ValueError as e:
             print(f"❌ 错误: {e}")
             print(f"💡 提示: 请检查 elements.yaml 中 {self.page_name} 页面是否定义了 '{element_name}' 元素")
             return False
         
+        # 首先检查元素是否存在，如果不存在则直接返回成功
+        if not self.is_element_present(by, locator, timeout=1):
+            print(f"ℹ️ 元素 {element_name} 本来就不存在，无需等待")
+            return True
+        
+        print(f"🔍 元素 {element_name} 当前存在，开始等待消失...")
         start_time = time.time()
         while time.time() - start_time < timeout:
-            if not self.is_element_present(by, locator, timeout=1):
+            # 检查元素是否还存在
+            if not self.is_element_present(by, locator, timeout=0.5):
+                print(f"✅ 元素 {element_name} 已消失")
                 return True
             time.sleep(0.5)  # 每0.5秒检查一次
         
+        print(f"⏰ 等待元素 {element_name} 消失超时 ({timeout}秒)")
         return False  # 超时
 
     def _handle_popups(self):

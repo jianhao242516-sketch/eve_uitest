@@ -1,4 +1,4 @@
-from pages.base_page import BasePage
+from pages.evev.base_page import BasePage
 
 class ReportPage(BasePage):
     def __init__(self, driver):

@@ -25,7 +25,8 @@ class BasePage:
         2. 从 utils/elements.yaml 加载（向后兼容）
         """
         if BasePage._elements is None:
-            base_dir = os.path.dirname(os.path.dirname(__file__))
+            # 现在 base_page.py 在 pages/evev/ 或 pages/evem/ 子目录中，需要多一层 dirname
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             elements_dir = os.path.join(base_dir, 'utils', 'elements')
             elements_file = os.path.join(base_dir, 'utils', 'elements.yaml')
             
@@ -76,7 +77,9 @@ class BasePage:
     def _load_popups(self):
         """加载弹窗配置文件"""
         if BasePage._popups is None:
-            popups_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'utils', 'popups.yaml')
+            # 现在 base_page.py 在 pages/evev/ 或 pages/evem/ 子目录中，需要多一层 dirname
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            popups_file = os.path.join(base_dir, 'utils', 'popups.yaml')
             with open(popups_file, 'r', encoding='utf-8') as f:
                 BasePage._popups = yaml.safe_load(f)
     
@@ -107,39 +110,30 @@ class BasePage:
         return self.find(by, locator)
 
     def find(self, by, locator):
-        """查找单个元素"""
-        try:
-            return self.wait.until(EC.presence_of_element_located((by, locator)))
-        except Exception as e:
-            # 查找元素失败时，尝试处理可能的弹窗
-            if self._handle_popups():
-                # 弹窗处理后重试查找
-                return self.wait.until(EC.presence_of_element_located((by, locator)))
-            else:
-                # 没有弹窗或弹窗处理失败，抛出原始异常
-                raise e
+        """查找单个元素
+        
+        注意：如果元素找不到，会直接抛出异常，不会自动处理弹窗或重试
+        """
+        return self.wait.until(EC.presence_of_element_located((by, locator)))
 
     def click_element(self, element_name):
         """直接点击元素 - 简化方法
         
         Args:
             element_name: 元素名称，格式为 "页面名.元素名" 或直接元素名
+        
+        注意：如果元素找不到或点击失败，会抛出异常，不会返回 False
         """
-        try:
-            if '.' in element_name:
-                # 格式: "页面名.元素名"
-                page_name, element = element_name.split('.', 1)
-                by, locator = self._get_locator(page_name, element)
-            else:
-                # 直接元素名，使用当前页面
-                by, locator = self._get_locator(self.page_name, element_name)
-            
-            self.click(by, locator)
-            print(f"✅ 已点击元素: {element_name}")
-            return True
-        except Exception as e:
-            print(f"❌ 点击元素失败: {element_name} - {e}")
-            return False
+        if '.' in element_name:
+            # 格式: "页面名.元素名"
+            page_name, element = element_name.split('.', 1)
+            by, locator = self._get_locator(page_name, element)
+        else:
+            # 直接元素名，使用当前页面
+            by, locator = self._get_locator(self.page_name, element_name)
+        
+        self.click(by, locator)
+        print(f"✅ 已点击元素: {element_name}")
 
     def send_keys_element(self, element_name, value):
         """直接向元素输入文本 - 简化方法
@@ -147,22 +141,19 @@ class BasePage:
         Args:
             element_name: 元素名称，格式为 "页面名.元素名" 或直接元素名
             value: 要输入的文本
+        
+        注意：如果元素找不到或输入失败，会抛出异常，不会返回 False
         """
-        try:
-            if '.' in element_name:
-                # 格式: "页面名.元素名"
-                page_name, element = element_name.split('.', 1)
-                by, locator = self._get_locator(page_name, element)
-            else:
-                # 直接元素名，使用当前页面
-                by, locator = self._get_locator(self.page_name, element_name)
-            
-            self.send_keys(by, locator, value)
-            print(f"✅ 已向元素 {element_name} 输入文本: {value}")
-            return True
-        except Exception as e:
-            print(f"❌ 向元素输入文本失败: {element_name} - {e}")
-            return False
+        if '.' in element_name:
+            # 格式: "页面名.元素名"
+            page_name, element = element_name.split('.', 1)
+            by, locator = self._get_locator(page_name, element)
+        else:
+            # 直接元素名，使用当前页面
+            by, locator = self._get_locator(self.page_name, element_name)
+        
+        self.send_keys(by, locator, value)
+        print(f"✅ 已向元素 {element_name} 输入文本: {value}")
 
     def click(self, by, locator):
         """点击元素"""
@@ -383,8 +374,9 @@ class BasePage:
         import time
         from datetime import datetime
         
-        # 基础截图目录
-        base_screenshot_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'screenshots')
+        # 基础截图目录（现在 base_page.py 在子目录中，需要多一层 dirname）
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        base_screenshot_dir = os.path.join(base_dir, 'screenshots')
         
         # 获取运行信息（从环境变量或默认值）
         run_start_timestamp = os.environ.get('RUN_START_TIMESTAMP', datetime.now().strftime("%Y%m%d_%H%M%S"))
@@ -433,26 +425,68 @@ class BasePage:
         except:
             return False
 
-    def wait_for_element_to_appear(self, element_name, timeout=30):
-        """等待指定元素出现"""
-        import time
+    def is_element_present_by_name(self, element_name, timeout=3):
+        """通过元素名称检查元素是否存在（不抛出异常）
+        
+        Args:
+            element_name: 元素名称，格式为 "页面名.元素名" 或直接元素名
+            timeout: 超时时间（秒），默认3秒
+        
+        Returns:
+            bool: 元素是否存在
+        """
         try:
-            by, locator = self._get_locator(self.page_name, element_name)
-            print(f"⏳ 等待元素出现: {element_name}, 超时时间: {timeout}秒")
+            if '.' in element_name:
+                # 格式: "页面名.元素名"
+                page_name, element = element_name.split('.', 1)
+                by, locator = self._get_locator(page_name, element)
+            else:
+                # 直接元素名，使用当前页面
+                by, locator = self._get_locator(self.page_name, element_name)
+            
+            return self.is_element_present(by, locator, timeout)
+        except:
+            return False
+
+    def wait_for_element_to_appear(self, element_name, timeout=30):
+        """等待指定元素出现
+        
+        支持两种调用方式：
+        1. 通过元素名称: wait_for_element_to_appear('element_name', 30)
+        2. 通过元素名称和超时: wait_for_element_to_appear(['element_name', 30])
+        
+        Args:
+            element_name: 元素名称（字符串）或 [元素名称, 超时时间]（列表）
+            timeout: 超时时间（秒），如果 element_name 是列表则忽略此参数
+        """
+        import time
+        
+        # 处理参数格式：支持 ['element_name', timeout] 或 'element_name', timeout
+        if isinstance(element_name, list) and len(element_name) >= 2:
+            actual_element_name = element_name[0]
+            actual_timeout = element_name[1] if isinstance(element_name[1], (int, float)) else timeout
+        else:
+            actual_element_name = element_name
+            actual_timeout = timeout
+        
+        try:
+            by, locator = self._get_locator(self.page_name, actual_element_name)
+            print(f"⏳ 等待元素出现: {actual_element_name}, 超时时间: {actual_timeout}秒")
             print(f"📍 元素定位: {by}={locator}")
         except ValueError as e:
             print(f"❌ 错误: {e}")
-            print(f"💡 提示: 请检查 elements.yaml 中 {self.page_name} 页面是否定义了 '{element_name}' 元素")
-            return False
+            print(f"💡 提示: 请检查 elements.yaml 中 {self.page_name} 页面是否定义了 '{actual_element_name}' 元素")
+            # 即使元素未定义，也抛出异常，让用户知道需要先定义元素
+            raise ValueError(f"元素 '{actual_element_name}' 在页面 '{self.page_name}' 中未定义，无法等待。请先在 elements.yaml 中定义该元素。") from e
         
         start_time = time.time()
-        while time.time() - start_time < timeout:
+        while time.time() - start_time < actual_timeout:
             if self.is_element_present(by, locator, timeout=0.5):
-                print(f"✅ 元素 {element_name} 已出现")
+                print(f"✅ 元素 {actual_element_name} 已出现")
                 return True
             time.sleep(0.5)  # 每0.5秒检查一次
         
-        print(f"⏰ 等待元素 {element_name} 出现超时 ({timeout}秒)")
+        print(f"⏰ 等待元素 {actual_element_name} 出现超时 ({actual_timeout}秒)")
         return False  # 超时
 
     def wait_for_element_to_disappear(self, element_name, timeout=30):
@@ -485,30 +519,57 @@ class BasePage:
         return False  # 超时
 
     def _handle_popups(self):
-        """处理可能的弹窗"""
+        """处理可能的弹窗（包括系统弹窗）"""
         popup_handled = False
         
         print("🔍 开始检查弹窗...")
         
         for popup in BasePage._popups.get('popups', []):
             try:
+                # 对于系统弹窗，使用稍长的超时时间（1.5秒），普通弹窗使用更短的超时（0.5秒）以加快检查速度
+                timeout = 1.5 if '系统' in popup.get('description', '') or '权限' in popup.get('description', '') else 0.5
+                
                 # 检查弹窗是否存在
-                if self.is_element_present(AppiumBy.XPATH, popup['xpath'], timeout=1):
+                if self.is_element_present(AppiumBy.XPATH, popup['xpath'], timeout=timeout):
                     print(f"🚨 发现弹窗: {popup['description']}")
                     print(f"📍 弹窗XPath: {popup['xpath']}")
                     
                     # 先截图记录弹窗状态
-                    self.screenshot(f"popup_{popup['description'].replace(' ', '_')}")
+                    try:
+                        self.screenshot(f"popup_{popup['description'].replace(' ', '_').replace('（', '_').replace('）', '_')}")
+                    except:
+                        pass  # 截图失败不影响弹窗处理
                     
                     # 点击弹窗按钮
-                    self.click(AppiumBy.XPATH, popup['xpath'])
-                    print(f"✅ 已点击弹窗: {popup['description']}")
-                    popup_handled = True
-                    
-                    # 等待一下让弹窗消失
-                    import time
-                    time.sleep(1)
-                    break  # 处理一个弹窗后退出
+                    # 对于系统弹窗，使用更宽松的等待
+                    try:
+                        self.click(AppiumBy.XPATH, popup['xpath'])
+                        print(f"✅ 已点击弹窗: {popup['description']}")
+                        popup_handled = True
+                        
+                        # 等待一下让弹窗消失
+                        import time
+                        time.sleep(1.5)  # 系统弹窗可能需要更长时间消失
+                        break  # 处理一个弹窗后退出
+                    except Exception as click_error:
+                        # 如果点击失败，尝试使用坐标点击（对于系统弹窗）
+                        print(f"⚠️ 使用XPath点击失败，尝试查找元素位置: {click_error}")
+                        try:
+                            # 尝试获取元素并点击
+                            element = self.driver.find_element(AppiumBy.XPATH, popup['xpath'])
+                            location = element.location
+                            size = element.size
+                            center_x = location['x'] + size['width'] / 2
+                            center_y = location['y'] + size['height'] / 2
+                            self.driver.tap([(center_x, center_y)])
+                            print(f"✅ 已通过坐标点击弹窗: {popup['description']}")
+                            popup_handled = True
+                            import time
+                            time.sleep(1.5)
+                            break
+                        except Exception as coord_error:
+                            print(f"⚠️ 坐标点击也失败: {coord_error}")
+                            continue
             except Exception as e:
                 # 弹窗处理失败，继续检查下一个
                 print(f"⚠️ 处理弹窗失败: {popup['description']} - {e}")
@@ -605,3 +666,76 @@ class BasePage:
             error_msg = message or f"文本不包含: 期望包含'{expected_text}', 实际'{actual_text}'"
             raise AssertionError(error_msg)
         return True
+
+def initialize_app(driver):
+    """
+    App 重新安装后的初始化操作 
+    v执行 m不执行
+    
+    只有在重新安装 app 时才会调用此函数进行初始化操作，例如：
+    - 处理权限弹窗
+    - 跳过引导页
+    - 登录等
+    
+    Args:
+        driver: Appium driver 实例
+    """
+    print("🔧 开始执行 App 初始化操作（重新安装后）...")
+    
+    try:
+        # 创建临时页面对象用于初始化操作
+        from pages.evem.base_page import BasePage
+        
+        # 动态创建初始化页面类
+        class InitPage(BasePage):
+            def __init__(self, driver):
+                BasePage.__init__(self, driver)
+                self.page_name = 'InitPage'
+        
+        init_page = InitPage(driver)
+        
+        # 等待 app 启动
+        import time
+        time.sleep(2)
+        
+        # 处理可能的弹窗（权限弹窗等）
+        init_page.check_and_handle_popups(3)
+        
+        # 首次安装启动后的初始化操作
+        try:
+            # 点击 doraemon logo dark 按钮
+            print("🔧 点击 doraemon logo dark 按钮...")
+            init_page.click(AppiumBy.XPATH, "//XCUIElementTypeButton[@name='doraemon logo dark']")
+            time.sleep(1)
+            
+            # 点击"小恶魔"文本
+            print("🔧 点击小恶魔...")
+            init_page.click(AppiumBy.XPATH, "//XCUIElementTypeStaticText[@name='小恶魔']")
+            time.sleep(1)
+            
+            # 点击"OTA自动化-屏蔽网线直连"开关
+            print("🔧 点击 OTA自动化-屏蔽网线直连 开关...")
+            init_page.click(AppiumBy.XPATH, "//XCUIElementTypeSwitch[@name='OTA自动化-屏蔽网线直连']")
+            time.sleep(0.5)
+            
+            # 点击"OTA自动化-屏蔽标定弹窗"开关
+            print("🔧 点击 OTA自动化-屏蔽标定弹窗 开关...")
+            init_page.click(AppiumBy.XPATH, "//XCUIElementTypeSwitch[@name='OTA自动化-屏蔽标定弹窗']")
+            time.sleep(0.5)
+            
+            # 点击"关闭"按钮
+            print("🔧 点击关闭按钮...")
+            init_page.click(AppiumBy.XPATH, "//XCUIElementTypeButton[@name='关闭']")
+            time.sleep(1)
+            
+            print("✅ 初始化配置完成")
+        except Exception as init_error:
+            print(f"⚠️ 初始化配置操作出错: {init_error}")
+            # 继续执行，不影响后续测试
+        
+        print("✅ App 初始化操作完成")
+        
+    except Exception as e:
+        print(f"⚠️ App 初始化操作出错: {e}")
+        # 初始化失败不影响测试继续执行
+        pass

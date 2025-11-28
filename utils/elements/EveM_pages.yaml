@@ -1,23 +1,23 @@
 # EveV 页面元素定义
 
 # 首页元素
-HomePage:
+M_HomePage:
   searchuser: ['xpath', "//XCUIElementTypeTextField"]
   searchresult1: ['xpath', "//XCUIElementTypeCollectionView/XCUIElementTypeCell[1]/XCUIElementTypeOther"]
   search_button: ['xpath', "//XCUIElementTypeButton[@name='搜索']"]
   connect_wlj: ['xpath', "//XCUIElementTypeStaticText[@name='未连接']"]
-  connect_disconnect_button: ['xpath', "//XCUIElementTypeStaticText[@name='已连接']"]
+  connect_disconnect_button: ['xpath', "//XCUIElementTypeStaticText[@name='连接良好']"]
   connect_next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
   connect_password_input: ['xpath', "//XCUIElementTypeStaticText[@name='请输入Wi-Fi密码']"]
   connect_password_button: ['xpath', "//XCUIElementTypeButton[@name='连接']"]
 # 用户资料页元素
-UserProfilePage:
+M_UserProfilePage:
   start_detect_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
   user_avatar: ['xpath', "//XCUIElementTypeImage[@name='头像']"]
   username_label: ['xpath', "//XCUIElementTypeStaticText[@name='用户名']"]
 
 # 检测页元素
-DetectPage:
+M_DetectPage:
   camera_button: ['xpath', "//XCUIElementTypeButton[@name='拍照']"]
   still_button: ['xpath', "//XCUIElementTypeStaticText[@name='仍旧拍摄']"]
   video_button: ['xpath', "//XCUIElementTypeButton[@name='视频检测']"]
@@ -30,12 +30,12 @@ DetectPage:
   confirm_button: ['xpath', "//XCUIElementTypeStaticText[@name='确定']"]
 
 # 登录页元素
-LoginPage:
-  username_input: ['xpath', "//XCUIElementTypeStaticText[@name='请输入您的门店账号']"]
-  password_input: ['xpath', "//XCUIElementTypeStaticText[@name='请输入您的登录密码']"]
-  login_button: ['xpath', "//XCUIElementTypeButton[@name='登录']"]
+M_LoginPage:
+  username_input: ['xpath', "	//XCUIElementTypeTextField"]
+  password_input: ['xpath', "//XCUIElementTypeSecureTextField"]
+  login_button: ['xpath', "//XCUIElementTypeStaticText[@name='登录']"]
 
-# 报告页元素
-Reportpage:
+  # 报告页元素
+M_ReportPage:
   zhfx: ['xpath', "//XCUIElementTypeStaticText[@name='综合分析']"]
 

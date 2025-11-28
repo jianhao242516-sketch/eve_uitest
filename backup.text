@@ -2,7 +2,7 @@
 ideviceinstaller -l 
 
 #获取device ID
-device_id -l 
+idevice_id -l 
 
 #获取IP
 ifconfig | grep inet
@@ -10,9 +10,9 @@ ifconfig | grep inet
 appium -a 0.0.0.0 -p 4724
 
 com.meitu.MTKingEnterprise
-python3 main/run_ui.py --bundleId com.evelabinsight.MTKingEnterprise --test tests/test_ui_flow.yaml --base_port 4723 --device iPad20
-
+python3 main/run_ui.py --bundleId com.evelabinsight.MTKingEnterprise --test tests/test_ui_flow.yaml --base_port 4723 --device 25iPad --app /Users/meitu/Downloads/ruby_eve_uitest/apps --reinstall
 python3 main/run_ui.py --bundleId com.meitu.EveChannel --test tests/test_chanel_flow.yaml --base_port 4723 --device iPad20 --times 30
 
+python3 main/run_ui.py --bundleId  com.evelabinsight.MTEveEnterprise --test tests/test_ui_flow_m.yaml  --base_port 4723 --device 25iPad --app /Users/meitu/Downloads/ruby_eve_uitest/apps --reinstall
 
 git:

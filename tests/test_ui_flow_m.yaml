@@ -1,32 +1,32 @@
 - name: '检测流程'
   steps:
-    - page: 'LoginPage'
+    - page: 'M_LoginPage'
       actions:
-        # - method: 'check_and_handle_popups'
-        #   params: 3
+        - method: 'check_and_handle_popups'
+          params: 3
         - method: 'login'
           params: ['lxr55', 'Test123#']
-    - page: 'HomePage'
+    - page: 'M_HomePage'
       actions:
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'connect'
-          params: '200138'
+          params: '200018'
         - method: 'searchuser'
           params: 'ruby'
-    - page: 'UserProfilePage'
+    - page: 'M_UserProfilePage'
       actions:
         - method: 'click_element'
           params: 'start_detect_button'
         - method: 'screenshot'
           params: 'start_detect_button'
-    - page: 'DetectPage'
+    - page: 'M_DetectPage'
       actions:
         - method: 'wait'
           params: 2
         - method: 'click_element'
           params: 'still_button'
-    - page: 'ReportPage'
+    - page: 'M_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
           params: ['zhfx', 200]

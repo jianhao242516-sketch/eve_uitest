@@ -3,7 +3,7 @@ import yaml, time
 from utils.driver import get_driver, restart_app
 from utils.logger import Logger
 
-def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_file=None):
+def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_file=None, app_path=None, reinstall=False):
     logger = Logger(prefix=device_info.get('name', 'DEV'))
     logger.log(f"设备子进程启动: {device_info} (第{run_number}次执行)")
 
@@ -21,16 +21,47 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
     }
 
     try:
-        driver = get_driver(device_info, appium_server=device_info['appium_server'])
+        driver = get_driver(device_info, appium_server=device_info['appium_server'], app_path=app_path, bundle_id=bundle_id, reinstall=reinstall)
     except Exception as e:
         logger.log(f"无法创建 driver: {e}")
         return
 
     try:
         restart_app(driver, bundle_id)
+        logger.log("✅ APP已启动")
     except Exception as e:
         logger.log(f"重启 App 出错: {e}")
+    
+    # 只有在重新安装 app 且 bundleId 包含 "MTKing" 时才执行初始化操作
+    if reinstall and app_path:
+        if bundle_id and 'MTKing' in bundle_id:
+            try:
+                logger.log("🔧 检测到重新安装且 bundleId 包含 'MTKing'，开始执行 App 初始化操作...")
+                from pages.evev.base_page import initialize_app
+                initialize_app(driver)
+                logger.log("✅ App 初始化操作完成")
+            except Exception as e:
+                logger.log(f"⚠️ App 初始化操作出错: {e}")
+        else:
+            logger.log(f"ℹ️ bundleId 不包含 'MTKing'（bundleId: {bundle_id}），跳过初始化操作")
+    else:
+        logger.log("ℹ️ 未重新安装 app，跳过初始化操作")
 
+    # 如果传入的是 .py 文件，自动尝试 .yaml 文件
+    import os
+    if yaml_path.endswith('.py'):
+        yaml_path_alt = yaml_path.replace('.py', '.yaml')
+        if os.path.exists(yaml_path_alt):
+            logger.log(f"⚠️ 检测到传入的是 .py 文件，自动使用对应的 .yaml 文件: {yaml_path_alt}")
+            yaml_path = yaml_path_alt
+        else:
+            logger.log(f"⚠️ 传入的是 .py 文件，但对应的 .yaml 文件不存在: {yaml_path_alt}")
+    
+    # 检查文件是否存在
+    if not os.path.exists(yaml_path):
+        logger.log(f"❌ 测试用例文件不存在: {yaml_path}")
+        return
+    
     with open(yaml_path, 'r', encoding='utf-8') as f:
         cases = yaml.safe_load(f)
 
@@ -59,19 +90,91 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
             page_name = step.get('page')
             actions = step.get('actions', [])
             
+            # 根据页面名称前缀或 bundleId 判断项目类型
+            # 优先级：页面名称前缀 > bundleId
+            # 如果页面名称以 M_ 开头，使用 evem 项目
+            # 如果 bundleId 包含 "eve"，根据页面名判断使用 evem 或 evev 项目
+            # 如果 bundleId 不包含 "eve"，使用 other 项目
+            if page_name.startswith('M_'):
+                # 页面名称以 M_ 开头，使用 evem 项目
+                project_dir = 'evem'
+            elif bundle_id and 'eve' in bundle_id.lower():
+                # bundleId 包含 eve，使用 evev 项目（默认）
+                # 注意：如果页面名以 M_ 开头，上面已经处理为 evem
+                project_dir = 'evev'
+            else:
+                # bundleId 不包含 eve，使用 other 项目
+                project_dir = 'other'
+            
             # 尝试加载页面类，如果不存在则动态创建
             page_class = None
             try:
                 import re
-                module_name = re.sub(r'(?<!^)(?=[A-Z])', '_', page_name).lower()  # LoginPage -> login_page
-                module = __import__(f"pages.{module_name}", fromlist=[page_name])
-                page_class = getattr(module, page_name, None)
-            except (ImportError, AttributeError) as e:
-                logger.log(f"⚠️ 页面类 {page_name} 不存在，将动态创建")
+                
+                # 对于 M_ 前缀的页面，尝试多种模块名格式
+                if page_name.startswith('M_'):
+                    # 方式1: 尝试 M_login_page 格式（匹配文件名）
+                    # M_LoginPage -> 先移除 M_，转换 LoginPage -> login_page，再加回 M_
+                    clean_page_name = page_name.replace('M_', '')  # M_LoginPage -> LoginPage
+                    module_base = re.sub(r'(?<!^)(?=[A-Z])', '_', clean_page_name).lower()  # LoginPage -> login_page
+                    module_name1 = f"M_{module_base}"  # M_login_page
+                    # 方式2: 尝试 login_page 格式（移除 M_ 前缀）
+                    module_name2 = module_base  # login_page
+                    
+                    # 先尝试方式1（匹配文件名）
+                    try:
+                        logger.log(f"🔍 尝试导入模块: pages.{project_dir}.{module_name1}")
+                        module = __import__(f"pages.{project_dir}.{module_name1}", fromlist=[page_name])
+                        logger.log(f"📦 模块导入成功: {module}")
+                        page_class = getattr(module, page_name, None)
+                        logger.log(f"🔍 查找类 {page_name}，结果: {page_class}")
+                        if page_class:
+                            logger.log(f"✅ 从 {project_dir} 项目加载页面类: {page_name} (模块: {module_name1})")
+                    except (ImportError, AttributeError) as e1:
+                        logger.log(f"⚠️ 方式1导入失败: {e1}")
+                        # 再尝试方式2
+                        try:
+                            logger.log(f"🔍 尝试导入模块: pages.{project_dir}.{module_name2}")
+                            module = __import__(f"pages.{project_dir}.{module_name2}", fromlist=[page_name])
+                            logger.log(f"📦 模块导入成功: {module}")
+                            page_class = getattr(module, page_name, None)
+                            logger.log(f"🔍 查找类 {page_name}，结果: {page_class}")
+                            if page_class:
+                                logger.log(f"✅ 从 {project_dir} 项目加载页面类: {page_name} (模块: {module_name2})")
+                        except (ImportError, AttributeError) as e2:
+                            logger.log(f"⚠️ 方式2导入也失败: {e2}")
+                            pass
+                else:
+                    # 普通页面名称
+                    module_name = re.sub(r'(?<!^)(?=[A-Z])', '_', page_name).lower()  # LoginPage -> login_page
+                    
+                    # 尝试从项目目录加载
+                    try:
+                        module = __import__(f"pages.{project_dir}.{module_name}", fromlist=[page_name])
+                        page_class = getattr(module, page_name, None)
+                        if page_class:
+                            logger.log(f"✅ 从 {project_dir} 项目加载页面类: {page_name}")
+                    except (ImportError, AttributeError):
+                        # 如果项目目录中找不到，尝试从根目录加载（向后兼容）
+                        try:
+                            module = __import__(f"pages.{module_name}", fromlist=[page_name])
+                            page_class = getattr(module, page_name, None)
+                            if page_class:
+                                logger.log(f"✅ 从根目录加载页面类: {page_name}")
+                        except (ImportError, AttributeError):
+                            pass
+            except Exception as e:
+                logger.log(f"⚠️ 页面类 {page_name} 不存在，将动态创建: {e}")
             
             # 如果页面类不存在，动态创建
             if page_class is None:
-                from pages.base_page import BasePage
+                # 根据项目目录导入 BasePage
+                if project_dir == 'evem':
+                    from pages.evem.base_page import BasePage
+                elif project_dir == 'evev':
+                    from pages.evev.base_page import BasePage
+                else:  # other
+                    from pages.other.base_page import BasePage
                 
                 # 动态创建页面类
                 def __init__(self, driver):
@@ -86,7 +189,7 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                 
                 # 动态创建类
                 page_class = type(page_name, (BasePage,), class_dict)
-                logger.log(f"✅ 已动态创建页面类: {page_name}")
+                logger.log(f"✅ 已动态创建页面类: {page_name} (项目: {project_dir})")
             
             page = page_class(driver)
             
@@ -133,6 +236,12 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                     else:
                         result = method()
                     
+                    # 检查方法返回值，如果返回 False 也标记为失败
+                    if result is False:
+                        logger.log(f"❌ 方法返回 False，标记用例失败: {page_name}.{method_name}")
+                        case_failed = True
+                        break  # 跳出action循环
+                    
                     # 如果是断言方法，记录断言结果
                     if method_name.startswith('assert_'):
                         logger.log(f"断言通过: {method_name}")
@@ -143,17 +252,37 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                     break  # 跳出action循环
                 except Exception as e:
                     error_msg = str(e)
-                    logger.log(f"执行出错: {page_name}.{method_name} - {error_msg}")
+                    error_type = type(e).__name__
+                    logger.log(f"执行出错: {page_name}.{method_name} - {error_type}: {error_msg}")
                     
-                    # 检查是否是元素找不到的错误
-                    if "NoSuchElementError" in error_msg or "element could not be located" in error_msg:
-                        logger.log(f"元素找不到，停止执行当前用例: {case.get('name')}")
+                    # 检查是否是元素找不到或超时的错误（所有元素查找相关的异常）
+                    element_not_found_keywords = [
+                        "NoSuchElement",
+                        "TimeoutException",
+                        "Timeout",
+                        "element could not be located",
+                        "Unable to locate element",
+                        "Message: An element could not be located",
+                        "selenium.common.exceptions.NoSuchElementException",
+                        "selenium.common.exceptions.TimeoutException",
+                        "appium.common.exceptions.NoSuchContextException"
+                    ]
+                    
+                    is_element_error = any(keyword in error_msg or keyword in error_type for keyword in element_not_found_keywords)
+                    
+                    if is_element_error:
+                        logger.log(f"❌ 元素找不到或超时，立即停止执行当前用例: {case.get('name')}")
+                        logger.log(f"   错误类型: {error_type}")
+                        logger.log(f"   错误信息: {error_msg}")
                         case_failed = True  # 标记用例失败
                         break  # 跳出action循环
-                    
-                    # 其他类型的错误也可以选择停止
-                    # case_failed = True  # 取消注释这行会让所有错误都停止执行
-                    # break
+                    else:
+                        # 其他类型的错误也停止执行
+                        logger.log(f"❌ 执行出错，停止执行当前用例: {case.get('name')}")
+                        logger.log(f"   错误类型: {error_type}")
+                        logger.log(f"   错误信息: {error_msg}")
+                        case_failed = True  # 标记用例失败
+                        break  # 跳出action循环
         
         if case_failed:
             logger.log(f"❌ 用例失败: {case.get('name')}")

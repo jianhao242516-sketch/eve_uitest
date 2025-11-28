@@ -12,6 +12,8 @@ def parse_args():
     parser.add_argument("--base_port", type=int, default=4723, help="Appium 起始端口")
     parser.add_argument("--devices", default="utils/devices.yaml", help="设备配置文件路径")
     parser.add_argument("--times", type=int, default=1, help="执行次数，默认为1次")
+    parser.add_argument("--app", default=None, help="App 安装包路径或目录路径（iOS: .ipa, Android: .apk）。如果指定文件则安装该文件，如果指定目录则自动安装目录下最新的 app 文件")
+    parser.add_argument("--reinstall", action="store_true", help="重新安装 app（先卸载再安装），需要配合 --app 使用")
     return parser.parse_args()
 
 def main():
@@ -75,7 +77,12 @@ def main():
         processes = []
         for device_info in selected_devices:
             logger.log(f"准备运行 {device_info['name']}，Appium端口: {device_info['appium_port']}")
-            p = mp.Process(target=run_case_on_device, args=(device_info, args.bundleId, args.test, run_number, results_file))
+            if args.app:
+                if args.reinstall:
+                    logger.log(f"🔄 将重新安装 App: {args.app} (先卸载再安装)")
+                else:
+                    logger.log(f"📱 将自动安装 App: {args.app}")
+            p = mp.Process(target=run_case_on_device, args=(device_info, args.bundleId, args.test, run_number, results_file, args.app, args.reinstall))
             p.start()
             processes.append(p)
             time.sleep(0.3)

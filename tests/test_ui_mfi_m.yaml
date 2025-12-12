@@ -1,17 +1,23 @@
+#mfi线连
 - name: '登录流程-M'
   steps:
-    - page: 'M_LoginPage'
-      actions:
-        - method: 'check_and_handle_popups'
-          params: 3
-        - method: 'login'
-          params: ['lxr55', 'Test123#']
+    # - page: 'M_LoginPage'
+    #   actions:
+    #     - method: 'check_and_handle_popups'
+    #       params: 3
+    #     - method: 'login'
+    #       params: ['lxr55', 'Test123#']
     - page: 'M_HomePage'
       actions:
         - method: 'check_and_handle_popups'
           params: 3
-        - method: 'connect'
-          params: '200018'
+        - method: 'screenshot'
+          params: 'connect'
+        #mfi线连不暂时屏蔽
+        - method: 'click_by_coordinates'
+          params: [100, 100]
+        # - method: 'connect'
+        #   params: '200018'
         - method: 'searchuser'
           params: 'ruby'
     - page: 'M_UserProfilePage'
@@ -22,18 +28,16 @@
           params: 'start_detect_button'
     - page: 'M_DetectPage'
       actions:
-        - method: 'wait'　　　　　　　　　　　　　　　      
-          params: 2
-        - method: 'click_element'
-          params: 'still_button'
+        - method: 'detect_success'
     - page: 'M_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
           params: ['zhfx', 200]
         - method: 'swipe_up'
         - method: 'screenshot'
-          params: 'end'     
+          params: 'end'
         # - method: 'swipe_down'
+
 - name: '网络检测-M'
   steps:
     - page: 'M_HomePage'
@@ -70,5 +74,8 @@
           params: 20
         - method: 'screenshot'
           params: 'end'
+# - name: '后台静置-M'
+
+
 
 

@@ -1,32 +1,28 @@
 - name: '检测流程'
+  setup_method: 'setup_method_1'  # 可选：指定前置方法名，在启动app前会先调用该方法
+  teardown_method: 'teardown_method_1'  # 可选：指定清理方法名，在用例执行完成后会调用该方法
   steps:
-    - page: 'V_LoginPage'
-      actions:
-        # - method: 'check_and_handle_popups'
-        #   params: 3
-        - method: 'login'
-          params: ['lxr55', 'Test123#']
-    - page: 'V_HomePage'
+    - page: 'M_HomePage'
       actions:
         - method: 'check_and_handle_popups'
           params: 3
-        - method: 'connect'
-          params: '200138'
+        - method: 'check_connected'
+          params: 'M_s300048'
         - method: 'searchuser'
-          params: 'ruby'
-    - page: 'V_UserProfilePage'
+          params: 'Ios检测'
+    - page: 'M_UserProfilePage'
       actions:
         - method: 'click_element'
           params: 'start_detect_button'
         - method: 'screenshot'
           params: 'start_detect_button'
-    - page: 'V_DetectPage'
+    - page: 'M_DetectPage'
       actions:
         - method: 'wait'
           params: 2
         - method: 'click_element'
           params: 'still_button'
-    - page: 'V_ReportPage'
+    - page: 'M_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
           params: ['zhfx', 200]

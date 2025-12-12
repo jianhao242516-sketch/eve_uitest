@@ -97,7 +97,8 @@ class BasePage:
                 'name': AppiumBy.NAME,
                 'class': AppiumBy.CLASS_NAME,
                 'tag': AppiumBy.TAG_NAME,
-                'accessibility_id': AppiumBy.ACCESSIBILITY_ID
+                'accessibility_id': AppiumBy.ACCESSIBILITY_ID,
+                'ios_predicate': AppiumBy.IOS_PREDICATE
             }
             
             return (by_mapping.get(by_type, AppiumBy.XPATH), locator)
@@ -666,6 +667,57 @@ class BasePage:
             error_msg = message or f"文本不包含: 期望包含'{expected_text}', 实际'{actual_text}'"
             raise AssertionError(error_msg)
         return True
+
+
+    def close_app(self, bundle_id=None):
+        """关闭app
+        
+        Args:
+            bundle_id: app的bundleId或appPackage，如果不提供则从环境变量获取
+        """
+        import time
+        try:
+            # 如果没有提供bundle_id，从环境变量获取
+            if bundle_id is None:
+                bundle_id = os.environ.get('CURRENT_BUNDLE_ID')
+                if not bundle_id:
+                    print("❌ 未提供bundle_id且环境变量中也没有，无法关闭app")
+                    return False
+            
+            print(f"🔒 正在关闭app: {bundle_id}")
+            self.driver.terminate_app(bundle_id)
+            print(f"✅ App已关闭")
+            time.sleep(1)  # 等待关闭完成
+            return True
+        except Exception as e:
+            print(f"❌ 关闭app失败: {e}")
+            return False
+
+    def open_app(self, bundle_id=None):
+        """打开app
+        
+        Args:
+            bundle_id: app的bundleId或appPackage，如果不提供则从环境变量获取
+        """
+        import time
+        try:
+            # 如果没有提供bundle_id，从环境变量获取
+            if bundle_id is None:
+                bundle_id = os.environ.get('CURRENT_BUNDLE_ID')
+                if not bundle_id:
+                    print("❌ 未提供bundle_id且环境变量中也没有，无法打开app")
+                    return False
+            
+            print(f"🚀 正在打开app: {bundle_id}")
+            self.driver.execute_script("mobile: launchApp", {"bundleId": bundle_id})
+            print(f"✅ App已打开")
+            time.sleep(2)  # 等待app启动
+            return True
+        except Exception as e:
+            print(f"❌ 打开app失败: {e}")
+            return False
+
+
 
 def initialize_app(driver):
     """

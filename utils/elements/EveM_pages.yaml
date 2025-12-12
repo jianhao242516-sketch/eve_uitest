@@ -6,10 +6,16 @@ M_HomePage:
   searchresult1: ['xpath', "//XCUIElementTypeCollectionView/XCUIElementTypeCell[1]/XCUIElementTypeOther"]
   search_button: ['xpath', "//XCUIElementTypeButton[@name='搜索']"]
   connect_wlj: ['xpath', "//XCUIElementTypeStaticText[@name='未连接']"]
-  connect_disconnect_button: ['xpath', "//XCUIElementTypeStaticText[@name='连接良好']"]
+  connected_button: ['xpath', "//XCUIElementTypeStaticText[@name='连接良好']"]
+  connected_button_1: ['xpath', "//XCUIElementTypeStaticText[@name='已连接']"]
   connect_next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
   connect_password_input: ['xpath', "//XCUIElementTypeStaticText[@name='请输入Wi-Fi密码']"]
   connect_password_button: ['xpath', "//XCUIElementTypeButton[@name='连接']"]
+  # 作为连接成功后的判定备用（与 connected_button 等价，便于代码复用）
+  connect_disconnect_button: ['xpath', "//*[@name='连接良好' or contains(@name,'连接良好')]"]
+  mdgl_button: ['xpath', "//XCUIElementTypeStaticText[@name='门店管理']"]
+  nm_ksjc_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
+  nm_next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
 # 用户资料页元素
 M_UserProfilePage:
   start_detect_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
@@ -28,7 +34,9 @@ M_DetectPage:
   cj_retake_button: ['xpath', "//XCUIElementTypeStaticText[@name='重新拍摄']"]
   back_button: ['xpath', "//XCUIElementTypeImage[@name='detect_back_icon']"]
   confirm_button: ['xpath', "//XCUIElementTypeStaticText[@name='确定']"]
-
+  i_know_button: ['xpath', "//XCUIElementTypeStaticText[@name='我知道了']"]
+  continue_button: ['xpath', "//XCUIElementTypeStaticText[@name='继续']"]
+  delete_button: ['xpath', "//XCUIElementTypeStaticText[@name='删除并继续']"] #云存储空间已满
 # 登录页元素
 M_LoginPage:
   username_input: ['xpath', "	//XCUIElementTypeTextField"]
@@ -39,3 +47,11 @@ M_LoginPage:
 M_ReportPage:
   zhfx: ['xpath', "//XCUIElementTypeStaticText[@name='综合分析']"]
 
+M_SettingsPage:
+  mdsz_button: ['xpath', "//XCUIElementTypeStaticText[@name='门店设置']"]
+  yfzj_button: ['xpath', "//XCUIElementTypeStaticText[@name='宜肤自检']"]
+  wljc_button: ['xpath', "//XCUIElementTypeStaticText[@name='网络检测']"]
+  sc_button: ['xpath', "//XCUIElementTypeStaticText[@name='上传网络日志']"]
+  sx_button: ['xpath', "//XCUIElementTypeStaticText[@name='刷新']"]
+  sc_success_button: ['xpath', "//XCUIElementTypeStaticText[@name='重新上传']"]
+  confirm_button: ['xpath', "//XCUIElementTypeStaticText[@name='确定']"]

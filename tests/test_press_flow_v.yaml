@@ -1,0 +1,28 @@
+- name: '检测完成中断-V'
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        # - method: 'isHomePage'
+        - method: 'check_connected'
+        #   params: 'V_200004'
+        - method: 'searchuser'
+          params: 'Ios检测'
+    - page: 'V_UserProfilePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'screenshot'
+          params: 'start_detect_button'
+    - page: 'V_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'still_button'
+        - method: 'wait'  
+          params: 25
+        - method: 'close_app'
+
+

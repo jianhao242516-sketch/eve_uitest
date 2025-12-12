@@ -1,14 +1,23 @@
-from pages.evem.base_page import BasePage
+from pages.evev.base_page import BasePage
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-class M_HomePage(BasePage):
+from pages.evev.V_login_page import V_LoginPage
+class V_HomePage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
-        self.page_name = 'M_HomePage'
-    
-    
+        self.page_name = 'V_HomePage'
+    def isHomePage(self):
+        #先找门店设置页，如果没有，就判断是否登录页，如果是登录页就登录，不是的话就报错
+        if self.is_element_present_by_name('mdsz_button'):
+            return True
+        elif self.is_element_present_by_name('username_input'):
+            login_page = V_LoginPage(self.driver)
+            login_page.login('lxr55', 'Test123#')
+            return True
+        else:
+            raise TimeoutError("页面异常，不是首页")
+
 #判断是否勿弹线连
 #连接
 
@@ -22,10 +31,9 @@ class M_HomePage(BasePage):
         """
         self.click_element('connect_wlj')
         self.check_and_handle_popups(3)
-        # 使用 name 定位元素（类似 Java 的 name == 'name'）
+
         device_text = device_name  # 调试先用 ruby 1，后续改为 device_name
         locator = f"name == '{device_text}'"
-        
         # 在2分钟内尝试查找元素
         print(f"🔍 开始查找设备: {device_text}，最多等待2分钟...")
         try:
@@ -51,9 +59,8 @@ class M_HomePage(BasePage):
             self.click_by_coordinates(click_x, click_y)
             print(f"✅ 已点击设备: {device_text}")
         except Exception as e:
-            error_msg = f"❌ 查找或点击设备元素失败:, 错误: {e}"
+            error_msg = f"❌ 在2分钟内未找到设备元素: {device_name}"
             print(error_msg)
-            print(f"🔍 错误详情: {type(e).__name__}: {str(e)}")
             raise TimeoutError(error_msg) from e
         self.click_element('connect_next_button')
         #判断是否需要输入Wi-Fi密码，寻找输入密码的元素
@@ -61,8 +68,7 @@ class M_HomePage(BasePage):
             self.send_keys_element('connect_password_input', 'meitutest85389')
             self.click_element('connect_password_button')
             self.check_and_handle_popups(3)
-        print("点击空白处，防止eve king关机引导")
-        self.click_by_coordinates(100, 100)
+        
         #判断是否连接成功
         if self.is_element_present_by_name('connect_disconnect_button'):
             print("✅ 连接成功")
@@ -76,8 +82,9 @@ class M_HomePage(BasePage):
         self.send_keys_element('searchuser', user_name)
         self.click_element('searchresult1')
         #判断是否搜索成功
-        if self.is_element_present_by_name('UserProfilePage.start_detect_button'):
+        if self.is_element_present_by_name('V_UserProfilePage.start_detect_button'):
             print("✅ 进入用户资料页成功")
+
 
     def check_connected(self,device_name):
         """检查是否连接成功"""
@@ -99,6 +106,7 @@ class M_HomePage(BasePage):
                 print(f"⚠️ 采集调试信息失败: {e}")
             print(f"❌ 未连接,尝试连接{device_name}")
             self.connect(device_name)
+
 
 
     def disconnect(self):

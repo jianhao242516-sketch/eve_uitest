@@ -16,3 +16,18 @@ python3 main/run_ui.py --bundleId com.meitu.EveChannel --test tests/test_chanel_
 python3 main/run_ui.py --bundleId  com.evelabinsight.MTEveEnterprise --test tests/test_ui_flow_m.yaml  --base_port 4723 --device 25iPad --app /Users/meitu/Downloads/ruby_eve_uitest/apps --reinstall
 
 git:
+curl -X POST http://172.21.19.89:8005/api/test/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bundleId": "com.evelabinsight.MTEveEnterprise",
+    "device": "ipad1",
+    "test": "tests/test_press_flow_m.yaml",
+    "appium_host": "172.21.126.183",
+    "app": "/Users/meitu/Downloads/ruby_eve_uitest/apps/evem_new-ios_332_1.15.30_测试环境企业包_0199b242-93c0-4152-b0e4-766a2dfddb58.ipa",
+    "reinstall": true,
+    “device_name”: M_700025
+  }'
+
+
+
+ curl -X POST http://172.21.19.89:8005/api/test/run -H "Content-Type: application/json" -d '{"bundleId": "com.evelabinsight.MTEveEnterprise", "device": "ipad1", "test": "tests/test_api_M.yaml", "appium_host": "172.21.126.183", "device_name": "M_700025","app":"/Users/meitu/Downloads/evem_new-ios_362_1.15.30_测试环境企业包_f78a1f46-1930-4e96-b0cf-b4cb598b0235.ipa","reinstall": true}'

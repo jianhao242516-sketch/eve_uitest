@@ -15,11 +15,20 @@ def get_driver(device, appium_server=None, app_path=None, bundle_id=None, reinst
         app_path: 可选，app 安装包路径或目录路径（iOS: .ipa, Android: .apk）
                  如果是目录，会自动查找最新的 app 文件并安装
                  如果提供，会在创建 driver 后自动安装
+                 注意：在分布式部署中，路径必须是 Appium 机器上的绝对路径
         bundle_id: 可选，app 的 bundleId 或 appPackage，用于卸载
         reinstall: 是否重新安装（先卸载再安装），默认 False
     """
     if not appium_server:
         raise ValueError('appium_server 必须传入，例如 http://127.0.0.1:4723')
+    
+    # 检测是否为分布式部署（Appium 在远程机器）
+    is_remote_appium = appium_server and not (
+        '127.0.0.1' in appium_server or 
+        'localhost' in appium_server or 
+        appium_server.startswith('http://localhost') or
+        appium_server.startswith('http://127.0.0.1')
+    )
     
     platform = device.get("platformName", "iOS")
     
@@ -34,6 +43,7 @@ def get_driver(device, appium_server=None, app_path=None, bundle_id=None, reinst
         # options.xcode_org_id = device.get("xcodeOrgId", "93QB6A5FF9")
         # options.xcode_signing_id = device.get("xcodeSigningId", "iPhone Developer")
         options.no_reset = True
+        options.new_command_timeout = 300
     else:  # Android
         options = UiAutomator2Options()
         options.platform_name = "Android"
@@ -41,32 +51,55 @@ def get_driver(device, appium_server=None, app_path=None, bundle_id=None, reinst
         options.automation_name = "UiAutomator2"
         options.udid = device.get("udid")
         options.no_reset = True
+        options.new_command_timeout = 300
     
     driver = webdriver.Remote(appium_server, options=options)
     
     # 如果提供了 app_path，安装或重新安装
     if app_path:
         if reinstall:
-            reinstall_app(driver, app_path, bundle_id, platform)
+            reinstall_app(driver, app_path, bundle_id, platform, is_remote_appium)
         else:
-            install_app(driver, app_path, platform)
+            install_app(driver, app_path, platform, is_remote_appium)
     
     return driver
 
-def find_latest_app(app_path, platform=None):
+def find_latest_app(app_path, platform=None, is_remote_appium=False):
     """
     查找 app 文件，如果路径是目录则查找最新的 .ipa 或 .apk 文件
     
     Args:
         app_path: app 文件路径或目录路径
         platform: 平台名称（"iOS" 或 "Android"），用于确定查找的文件类型
+        is_remote_appium: 是否为分布式部署（Appium 在远程机器）
     
     Returns:
         找到的 app 文件路径
+    
+    注意：在分布式部署中，app_path 应该是 Appium 所在机器的路径
     """
     if not app_path:
         return None
     
+    # 在分布式部署中，无法访问 Appium 机器上的文件系统
+    # Appium 不支持目录路径，必须提供完整的文件路径
+    if is_remote_appium:
+        if not os.path.isabs(app_path):
+            raise ValueError(f'在分布式部署中，app 路径必须是绝对路径。当前路径: {app_path}')
+        
+        # 检查是否是目录路径（通过扩展名判断）
+        if not app_path.endswith('.ipa') and not app_path.endswith('.apk'):
+            raise ValueError(
+                f'在分布式部署中，app 路径必须是文件路径（.ipa 或 .apk），不能是目录。\n'
+                f'当前路径: {app_path}\n'
+                f'请提供完整的文件路径，例如: /Users/yourname/apps/app.ipa'
+            )
+        
+        # 绝对路径且是文件路径，直接返回
+        print(f'📱 分布式部署：使用 Appium 机器上的文件路径: {app_path}')
+        return app_path
+    
+    # 本地部署：可以正常检查路径和查找文件
     if not os.path.exists(app_path):
         raise FileNotFoundError(f'路径不存在: {app_path}')
     
@@ -139,10 +172,10 @@ def _install_app_file(driver, actual_app_path, platform):
         time.sleep(2)  # 等待安装完成
     except Exception as e:
         print(f'⚠️ App 安装失败: {e}')
-        # 如果安装失败，可能是已经安装了，继续执行
-        pass
+        # 明确失败即中止后续流程，由上层捕获并终止本次执行
+        raise RuntimeError(f'App 安装失败，已中止执行: {e}')
 
-def install_app(driver, app_path, platform=None):
+def install_app(driver, app_path, platform=None, is_remote_appium=False):
     """
     安装 app 到设备
     
@@ -151,12 +184,13 @@ def install_app(driver, app_path, platform=None):
         app_path: app 安装包路径或目录路径（iOS: .ipa, Android: .apk）
                  如果是目录，会自动查找最新的 app 文件
         platform: 平台名称（"iOS" 或 "Android"），如果不提供会自动检测
+        is_remote_appium: 是否为分布式部署（Appium 在远程机器）
     """
     if not app_path:
         return
     
     # 查找 app 文件（如果是目录则查找最新的）
-    actual_app_path = find_latest_app(app_path, platform)
+    actual_app_path = find_latest_app(app_path, platform, is_remote_appium)
     
     # 自动检测平台（如果未提供）
     if not platform:
@@ -169,7 +203,7 @@ def install_app(driver, app_path, platform=None):
     
     _install_app_file(driver, actual_app_path, platform)
 
-def reinstall_app(driver, app_path, bundle_id=None, platform=None):
+def reinstall_app(driver, app_path, bundle_id=None, platform=None, is_remote_appium=False):
     """
     重新安装 app（先卸载再安装）
     
@@ -179,12 +213,13 @@ def reinstall_app(driver, app_path, bundle_id=None, platform=None):
                  如果是目录，会自动查找最新的 app 文件
         bundle_id: app 的 bundleId (iOS) 或 appPackage (Android)，用于卸载
         platform: 平台名称（"iOS" 或 "Android"），如果不提供会自动检测
+        is_remote_appium: 是否为分布式部署（Appium 在远程机器）
     """
     if not app_path:
         return
     
     # 查找 app 文件（如果是目录则查找最新的）
-    actual_app_path = find_latest_app(app_path, platform)
+    actual_app_path = find_latest_app(app_path, platform, is_remote_appium)
     
     # 自动检测平台（如果未提供）
     if not platform:

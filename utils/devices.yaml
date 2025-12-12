@@ -2,15 +2,24 @@ devices:
   - name: "25iPad"
     udid: "00008120-0004086930214032"
     platformName: "iOS"
-
-
+    appium_port: 4723 
+  - name: "iPad (3)"
+    udid: "cf960aa0fc1f5e3c58440c27724021fd4345eb1f" 
+    platformName: "iOS"
+    appium_port: 4724
   - name: "23M4"
     udid: "00008132-000C28E63C39001C"
     platformName: "iOS"
-
-  - name: "iPad_03"
-    udid: "00008130-001A2B3C0D987654"
+    appium_port: 4725
+  - name: "ipad1"
+    udid: "00008027-001319961168002E"
     platformName: "iOS"
+    appium_port: 4726
   - name: "iPad20"
     udid: "00008112-00093924228B401E"
     platformName: "iOS"
+    appium_port: 4727
+  - name: "iPad24"
+    udid: "00008122-000A60303C9A801C"
+    platformName: "iOS"
+    appium_port: 4728

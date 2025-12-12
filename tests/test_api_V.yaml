@@ -1,0 +1,240 @@
+- name: '关闭扫码权限-V'
+  setup_method: 'update_login_qr_code(0)'
+  teardown_method: 'update_login_qr_code(1)'
+  steps:
+    - page: 'V_LoginPage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'login'
+          params: ['lxr55', 'Test123#']
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'connect'
+          params: 's300048'
+        - method: 'searchuser'
+          params: 'ruby'
+        - method: 'screenshot'
+    - page: 'V_UserProfilePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'screenshot'
+          params: 'start_detect_button'
+    - page: 'V_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'detect_success'
+    - page: 'V_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 200]
+        - method: 'swipe_up'
+        - method: 'screenshot'
+          params: 'end'
+        - method: 'close_app'
+
+- name: '关闭首页logo-V'
+  setup_method: "update_module_ext_common({'saas_change_logo': 0})"
+  teardown_method: "update_module_ext_common({'saas_change_logo': 1})"
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'searchuser'
+          params: 'ruby'
+        - method: 'screenshot'
+    - page: 'V_UserProfilePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'screenshot'
+          params: 'start_detect_button'
+    - page: 'V_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'detect_success'
+    - page: 'V_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 200]
+        - method: 'swipe_up'
+        - method: 'screenshot'
+          params: 'end'
+        - method: 'close_app'
+
+- name: '会员模式-V'
+  setup_method: update_login_mode('user_login_type_eve20',[2])
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'connect'
+          params: 's300048'
+        - method: 'searchuser'
+          params: 'ruby'
+        - method: 'screenshot'
+    - page: 'V_UserProfilePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'screenshot'
+          params: 'start_detect_button'
+    - page: 'V_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'detect_success'
+    - page: 'V_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 200]
+        - method: 'swipe_up'
+        - method: 'screenshot'
+          params: 'end'
+        - method: 'close_app'
+
+- name: '仅匿名模式-V'
+  setup_method: update_login_mode('user_login_type_eve20',[1], [1,2,3])
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'screenshot'
+        - method: 'close_app'
+
+- name: '匿名模式&会员模式-V'
+  setup_method: update_login_mode('user_login_type_eve20',[2, 1], [1,2,3])
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'connect'
+          params: 's300048'
+        - method: 'searchuser'
+          params: 'ruby'
+        - method: 'screenshot'
+    - page: 'V_UserProfilePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'screenshot'
+          params: 'start_detect_button'
+    - page: 'V_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'detect_success'
+    - page: 'V_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 200]
+        - method: 'swipe_up'
+        - method: 'screenshot'
+          params: 'end'
+        - method: 'close_app'
+
+- name: '关闭店员权限-V'
+  setup_method: 'update_staff_management(0)'
+  teardown_method: 'update_staff_management(1)'
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'connect'
+          params: 's300048'
+        - method: 'searchuser'
+          params: 'ruby'
+        - method: 'screenshot'
+    - page: 'V_UserProfilePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'screenshot'
+          params: 'start_detect_button'
+    - page: 'V_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'detect_success'
+    - page: 'V_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 200]
+        - method: 'swipe_up'
+        - method: 'screenshot'
+          params: 'end'
+        - method: 'close_app'
+
+# 采集模式仅V
+- name: '切换成采集模式&有拍后预览-V'
+  setup_method: 'update_app_mode(2, 0, 1)'
+  teardown_method: 'update_app_mode(1, 0, 0)'
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'screenshot'
+        - method: 'searchuser'
+          params: 'ruby'
+        - method: 'screenshot'
+        - method: 'close_app'
+
+# UI切换仅V
+- name: '切换成UI1.0-V'
+  setup_method: 'update_app_theme(0)'
+  teardown_method: 'update_app_theme(1, 7302877426951156137)'
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'screenshot'
+        - method: 'searchuser'
+          params: 'ruby'
+        - method: 'screenshot'
+        - method: 'close_app'
+
+
+# - name: '高阶版过期-V'
+  setup_method: 'update_store_grant_type(1, 20, 1)'
+  teardown_method: 'update_store_grant_type(1, 20, 2)'
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'screenshot'
+        - method: 'connect'
+          params: 's300048'
+        - method: 'searchuser'
+          params: 'ruby'
+    - page: 'V_UserProfilePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'screenshot'
+          params: 'start_detect_button'
+    - page: 'V_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'detect_success'
+    - page: 'V_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 200]
+        - method: 'swipe_up'
+        - method: 'screenshot'
+          params: 'end'
+        - method: 'close_app'

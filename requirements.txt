@@ -1,0 +1,24 @@
+# Ruby Eve UI Test 项目依赖
+# 
+# 安装方式:
+#   pip install -r requirements.txt
+#
+# 或使用国内镜像加速:
+#   pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# Web 框架 - API 服务
+# 用于提供 HTTP API 接口，接收测试请求
+Flask>=2.3.0,<3.0.0
+
+# Appium 客户端 - 移动端自动化测试
+# 用于连接 Appium 服务器，控制 iOS/Android 设备
+Appium-Python-Client>=3.1.0
+
+# Selenium - WebDriver 支持
+# Appium 依赖 Selenium，提供 WebDriver 和等待机制
+selenium>=4.15.0,<5.0.0
+
+# YAML 文件处理
+# 用于读取测试用例配置和设备配置
+PyYAML>=6.0
+

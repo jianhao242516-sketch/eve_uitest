@@ -2,6 +2,42 @@
 
 基于 Appium + Python + YAML 的移动端UI自动化测试框架，支持多设备并行测试。
 
+## 🌐 HTTP API 服务
+
+本框架提供 HTTP API 服务，支持通过 RESTful 接口远程执行自动化测试。
+
+### 快速启动服务
+
+```bash
+# 启动 API 服务（默认端口 8005）
+python3 main/api_server.py
+
+# 指定端口
+python3 main/api_server.py --host 0.0.0.0 --port 8005
+```
+
+### API 使用示例
+
+```bash
+# 执行测试任务
+curl -X POST http://localhost:8005/api/test/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bundleId": "com.evelabinsight.MTEveEnterprise",
+    "device": "25iPad",
+    "test": "tests/test_ui_flow_m.yaml",
+    "app": "apps",
+    "reinstall": true
+  }'
+
+# 查询任务状态
+curl http://localhost:8005/api/test/status/<task_id>
+```
+
+**详细 API 文档**: 请查看 [API_README.md](API_README.md)  
+**部署指南**: 请查看 [DEPLOYMENT.md](DEPLOYMENT.md)  
+**服务介绍**: 请查看 [SERVICE_INTRO.md](SERVICE_INTRO.md)
+
 ## 🚀 功能特性
 
 ### ✨ 核心功能
@@ -15,6 +51,8 @@
 - **简化操作**: 提供统一的元素操作方法（click_element, send_keys_element）
 - **坐标操作**: 支持坐标点击和滑动操作
 - **用例串行执行**: 每个用例自动重启APP，确保环境干净
+- **前置和清理方法**: 支持在用例执行前后自动执行配置和清理方法
+- **运行时参数传递**: 支持通过命令行参数动态传入设备名称等参数
 
 ### 📱 支持平台
 - **iOS**: 支持真机和模拟器
@@ -118,6 +156,9 @@ python3 main/run_ui.py --bundleId com.meitu.MTKingEnterprise --test tests/test_c
 
 # 多设备并行
 python3 main/run_ui.py --bundleId com.meitu.MTKingEnterprise --test tests/test_cj_collect_flow_element.yaml --base_port 4723 --device 23M4,iPad_01
+
+# 运行时传入设备名称（用于 check_connected、connect 等方法）
+python3 main/run_ui.py --bundleId com.evelabinsight.MTEveEnterprise --test tests/test_press_flow_m.yaml --base_port 4723 --device ipad1 --device_name 200018
 ```
 
 ### 参数说明
@@ -126,17 +167,22 @@ python3 main/run_ui.py --bundleId com.meitu.MTKingEnterprise --test tests/test_c
 - `--base_port`: Appium服务基础端口
 - `--device`: 设备名称（支持多个，逗号分隔）
 - `--times`: 执行次数（默认1次）
+- `--device_name`: 设备名称（用于 `check_connected`、`connect` 等方法），如果不传则使用 YAML 中的值或方法默认值
 
 ### 执行流程说明
 - **用例串行执行**: 多个用例会按顺序串行执行，每个用例开始前会自动重启APP
 - **环境隔离**: 每个用例都在干净的环境中执行，互不干扰
 - **自动等待**: 用例之间会自动等待，确保执行稳定
+- **前置方法（setup_method）**: 在启动 app 之前执行，用于配置环境（如开启功能开关、配置登录方式等）
+- **清理方法（teardown_method）**: 在每个用例执行完成后执行，用于清理环境（如恢复默认配置）
 
 ## 📝 测试用例编写
 
 ### YAML格式示例
 ```yaml
-- name: '采集流程测试'
+- name: '检测流程'
+  setup_method: 'setup_method_1'  # 可选：指定前置方法名，在启动app前会先调用该方法
+  teardown_method: 'teardown_method_1'  # 可选：指定清理方法名，在用例执行完成后会调用该方法
   steps:
     - page: 'CjSearchXmPage'
       actions:
@@ -296,6 +342,169 @@ screenshots/
 - 动态创建继承自 `BasePage` 的页面类
 - 自动设置 `page_name`
 - 可以使用 `utils/elements/` 目录中定义的元素
+
+### 8. 前置方法和清理方法（setup_method / teardown_method）
+**支持在用例执行前后自动执行配置和清理方法，用于环境准备和恢复。**
+
+#### 前置方法（setup_method）
+在启动 app **之前**执行，用于配置测试环境，例如：
+- 开启/关闭功能开关
+- 配置登录方式（扫码登录、账号密码登录等）
+- 配置检测维度
+- 配置报告页功能等
+
+**执行时机**：
+- 在创建 driver 之前执行
+- 所有用例的前置方法会在启动 app 前统一执行（去重）
+- 如果前置方法执行失败，会记录警告但继续执行测试
+
+**使用示例**：
+```yaml
+- name: '检测流程'
+  setup_method: 'setup_method_1'  # 指定前置方法名
+  steps:
+    - page: 'M_HomePage'
+      actions:
+        - method: 'check_connected'
+          params: '200018'
+```
+
+**定义前置方法**：
+在 `api_scripts/test_setup_methods.py` 中定义并注册：
+
+```python
+def setup_method_1():
+    """示例：开启扫码登录"""
+    logger.log("执行前置方法: setup_method_login_qr_code")
+    update_login_qr_code(1)  # 开启扫码登录
+    logger.log("✅ setup_method_login_qr_code 执行完成")
+
+# 注册到方法表
+SETUP_METHODS = {
+    'setup_method_1': setup_method_1,
+    # 可以继续添加更多方法...
+}
+```
+
+#### 清理方法（teardown_method）
+在每个用例执行**完成后**执行，用于清理测试环境，例如：
+- 恢复默认配置
+- 关闭临时开启的功能
+- 清理测试数据等
+
+**执行时机**：
+- 在用例的所有步骤执行完成后执行
+- 无论用例成功还是失败，都会执行清理方法
+- 如果清理方法执行失败，会记录警告但不影响后续用例
+
+**使用示例**：
+```yaml
+- name: '检测流程'
+  setup_method: 'setup_method_1'
+  teardown_method: 'teardown_method_1'  # 指定清理方法名
+  steps:
+    - page: 'M_HomePage'
+      actions:
+        - method: 'check_connected'
+          params: '200018'
+```
+
+**定义清理方法**：
+在 `api_scripts/test_setup_methods.py` 中定义并注册：
+
+```python
+def teardown_method_1():
+    """示例：恢复默认配置"""
+    logger.log("执行清理方法: teardown_method_1")
+    update_login_qr_code(2)  # 恢复扫码登录为默认状态
+    logger.log("✅ teardown_method_1 执行完成")
+
+# 注册到方法表
+TEARDOWN_METHODS = {
+    'teardown_method_1': teardown_method_1,
+    # 可以继续添加更多方法...
+}
+```
+
+#### 完整示例
+```yaml
+- name: '检测流程'
+  setup_method: 'setup_method_1'  # 前置：开启扫码登录
+  teardown_method: 'teardown_method_1'  # 清理：恢复默认配置
+  steps:
+    - page: 'M_HomePage'
+      actions:
+        - method: 'check_connected'
+          params: '200018'
+        - method: 'searchuser'
+          params: 'ruby'
+    - page: 'M_UserProfilePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+```
+
+#### 可用方法
+查看 `api_scripts/test_setup_methods.py` 文件中的 `SETUP_METHODS` 和 `TEARDOWN_METHODS` 字典，可以看到所有已注册的方法。
+
+#### 注意事项
+- 前置方法和清理方法都是**可选的**，不指定也不会影响测试执行
+- 前置方法执行失败不会阻止测试继续执行，只会记录警告
+- 清理方法执行失败也不会影响后续用例，只会记录警告
+- 可以在多个用例中复用同一个前置或清理方法
+
+### 9. 运行时参数传递（device_name）
+**支持运行时传入设备名称，自动应用到所有需要 `device_name` 参数的方法。**
+
+#### 优先级顺序
+1. **运行时传入的值**（`--device_name`）- 最高优先级
+2. YAML 中的值（`params`）
+3. 方法的默认值（如果方法有默认参数）
+4. 全局默认值 `'200018'`（如果方法没有默认值）
+
+#### 使用示例
+
+**方式1：运行时传入 device_name（覆盖 YAML 中的值）**
+```bash
+python3 main/run_ui.py \
+  --bundleId com.evelabinsight.MTEveEnterprise \
+  --test tests/test_press_flow_m.yaml \
+  --base_port 4723 \
+  --device ipad1 \
+  --device_name 200018
+```
+
+YAML 文件：
+```yaml
+- page: 'M_HomePage'
+  actions:
+    - method: 'check_connected'
+      params: '200018'  # 这个值会被运行时传入的值覆盖
+```
+
+**方式2：YAML 中不传 params，使用运行时传入的值**
+```yaml
+- page: 'M_HomePage'
+  actions:
+    - method: 'check_connected'
+      # 不传 params，使用运行时传入的 --device_name
+```
+
+**方式3：都不传，使用方法的默认值**
+```yaml
+- page: 'M_HomePage'
+  actions:
+    - method: 'check_connected'
+      # 不传 params，运行时也不传 --device_name，使用方法默认值
+```
+
+#### 支持的方法
+所有需要 `device_name` 参数的方法都会自动支持，包括：
+- `check_connected(device_name='200018')` - 检查连接状态
+- `connect(device_name)` - 连接设备
+- 其他将来添加的需要 `device_name` 的方法
+
+系统会自动检测方法签名，如果方法需要 `device_name` 参数，会自动应用运行时传入的值。
 
 ## 📊 测试报告
 

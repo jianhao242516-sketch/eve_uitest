@@ -15,7 +15,7 @@ class V_DetectPage(BasePage):
             print("轮训，查找是否有确定按钮，有的话点击，直到没有后，点击still_button")
             # 先处理可能出现的弹窗按钮：确定 / 我知道了
             handled = False
-            for btn in ['confirm_button', 'i_know_button']:
+            for btn in ['confirm_button', 'i_know_button', 'continue_button', 'delete_button']:
                 if self.is_element_present_by_name(btn):
                     self.click_element(btn)
                     clicked_confirm_once = True

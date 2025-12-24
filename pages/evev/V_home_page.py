@@ -37,7 +37,7 @@ class V_HomePage(BasePage):
         # 在2分钟内尝试查找元素
         print(f"🔍 开始查找设备: {device_text}，最多等待2分钟...")
         try:
-            wait = WebDriverWait(self.driver, 120)  # 2分钟 = 120秒
+            wait = WebDriverWait(self.driver, 130)  # 2分钟 = 120秒
             # 使用 name 定位元素
             element = wait.until(EC.presence_of_element_located((AppiumBy.IOS_PREDICATE, locator)))
             print(f"✅ 找到设备元素: {device_text}")
@@ -70,7 +70,7 @@ class V_HomePage(BasePage):
             self.check_and_handle_popups(3)
         
         #判断是否连接成功
-        if self.is_element_present_by_name('connect_disconnect_button'):
+        if self.is_element_present_by_name('connected_button', timeout=10):
             print("✅ 连接成功")
         else:
             print("❌ 连接失败")
@@ -109,6 +109,17 @@ class V_HomePage(BasePage):
 
 
 
-    def disconnect(self):
-        """断开连接"""
-        self.click_element('disconnect_button')
+    def check_homepage_alter(self):
+        """检查是否弹出[报告生成中断]弹窗"""
+        if self.is_element_present_by_name('retran_alter_button'):
+            self.click_element('cancel_button')
+            print("✅ [报告生成中断]弹窗，点击取消按钮")
+        else:
+            print("❌ 未弹出报告生成中断弹窗")
+        #检查是否有标定弹窗，有的话点击确定，没有的话点击取消
+        # if self.is_element_present_by_name('biaoding_alter_button'):
+        #     self.click_element('yes_button')
+        #     print("✅ [标定弹窗]弹窗，点击确定按钮")
+        # else:
+        #     self.click_element('cancel_button')
+        #     print("✅ [标定弹窗]弹窗，点击取消按钮")

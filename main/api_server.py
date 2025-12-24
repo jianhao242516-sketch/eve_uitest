@@ -16,7 +16,7 @@ app = Flask(__name__)
 tasks = {}
 tasks_lock = threading.Lock()
 
-def execute_test(task_id, device_info, bundle_id, test_file, app_path, reinstall, times=1, device_name=None):
+def execute_test(task_id, device_info, bundle_id, test_file, app_path, reinstall, times=1, device_name=None, case_filters=None):
     """在后台线程中执行测试"""
     # 创建日志文件路径
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,7 +65,7 @@ def execute_test(task_id, device_info, bundle_id, test_file, app_path, reinstall
             
             try:
                 # 执行测试
-                run_case_on_device(device_info, bundle_id, test_file, run_number, results_file, app_path, reinstall, device_name)
+                run_case_on_device(device_info, bundle_id, test_file, run_number, results_file, app_path, reinstall, device_name, case_filters)
                 
                 # 读取本次执行结果（应该只有一行）
                 try:
@@ -143,6 +143,15 @@ def run_test():
         reinstall = data.get('reinstall', False)
         times = data.get('times', 1)  # 执行次数，默认1次
         test_device_name = data.get('device_name')  # 用于 check_connected、connect 等方法的设备名称
+        # 用例名过滤：支持传入字符串（逗号分隔）或数组
+        case_filters = data.get('cases') or data.get('case')
+        if isinstance(case_filters, list):
+            case_filters = [str(x) for x in case_filters]
+        elif isinstance(case_filters, str):
+            # 原样传下去，底层会自行 split
+            pass
+        else:
+            case_filters = None
         # Appium 服务器地址（支持远程连接）
         appium_host = data.get('appium_host', '127.0.0.1')  # 默认本地，可改为远程 IP
         
@@ -218,6 +227,7 @@ def run_test():
                 'reinstall': reinstall,
                 'times': times,
                 'device_name': test_device_name,  # 用于 check_connected、connect 等方法的设备名称
+                'cases': case_filters,
                 'create_time': datetime.now().isoformat(),
                 'log_file': log_file,  # 保存日志文件路径
             }
@@ -225,7 +235,7 @@ def run_test():
         # 在后台线程中执行测试
         thread = threading.Thread(
             target=execute_test,
-            args=(task_id, device_info, bundle_id, test_file, app_path, reinstall, times, test_device_name)
+            args=(task_id, device_info, bundle_id, test_file, app_path, reinstall, times, test_device_name, case_filters)
         )
         thread.daemon = True
         thread.start()

@@ -30,4 +30,4 @@ curl -X POST http://172.21.19.89:8005/api/test/run \
 
 
 
- curl -X POST http://172.21.19.89:8005/api/test/run -H "Content-Type: application/json" -d '{"bundleId": "com.evelabinsight.MTEveEnterprise", "device": "ipad1", "test": "tests/test_api_M.yaml", "appium_host": "172.21.126.183", "device_name": "M_700025","app":"/Users/meitu/Downloads/evem_new-ios_362_1.15.30_测试环境企业包_f78a1f46-1930-4e96-b0cf-b4cb598b0235.ipa","reinstall": true}'
+ curl -X POST http://172.21.19.89:8005/api/test/run -H "Content-Type: application/json" -d '{"bundleId": "com.evelabinsight.MTEveEnterprise", "device": "ipad1", "test": "tests/test_ui_flow_m.yaml", "appium_host": "172.21.126.183", "device_name": "M_700025","app":"/Users/meitu/Downloads/evem_new-ios_370_1.15.30_测试环境企业包_7e077cd4-6c10-4c89-89f4-c2f177b0a835.ipa","reinstall": true,"time":100}'

@@ -1,6 +1,6 @@
 - name: '检测流程'
-  setup_method: 'setup_method_1'  # 可选：指定前置方法名，在启动app前会先调用该方法
-  teardown_method: 'teardown_method_1'  # 可选：指定清理方法名，在用例执行完成后会调用该方法
+  # setup_method: 'setup_method_1'  # 可选：指定前置方法名，在启动app前会先调用该方法
+  # teardown_method: 'teardown_method_1'  # 可选：指定清理方法名，在用例执行完成后会调用该方法
   steps:
     - page: 'M_HomePage'
       actions:
@@ -18,10 +18,7 @@
           params: 'start_detect_button'
     - page: 'M_DetectPage'
       actions:
-        - method: 'wait'
-          params: 2
-        - method: 'click_element'
-          params: 'still_button'
+        - method: 'detect_success'
     - page: 'M_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'

@@ -23,3 +23,7 @@ devices:
     udid: "00008122-000A60303C9A801C"
     platformName: "iOS"
     appium_port: 4728
+  - name: "iPad"
+    udid: "00008120-001E158628814032"
+    platformName: "iOS"
+    appium_port: 4729

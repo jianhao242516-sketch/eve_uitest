@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument("--app", default=None, help="App 安装包路径或目录路径（iOS: .ipa, Android: .apk）。如果指定文件则安装该文件，如果指定目录则自动安装目录下最新的 app 文件")
     parser.add_argument("--reinstall", action="store_true", help="重新安装 app（先卸载再安装），需要配合 --app 使用")
     parser.add_argument("--device_name", default=None, help="设备名称（用于 check_connected 等方法），如果不传则使用代码中的默认值")
+    parser.add_argument("--cases", default=None, help="仅运行指定的用例名，多个用逗号分隔")
     return parser.parse_args()
 
 def main():
@@ -83,7 +84,7 @@ def main():
                     logger.log(f"🔄 将重新安装 App: {args.app} (先卸载再安装)")
                 else:
                     logger.log(f"📱 将自动安装 App: {args.app}")
-            p = mp.Process(target=run_case_on_device, args=(device_info, args.bundleId, args.test, run_number, results_file, args.app, args.reinstall, args.device_name))
+            p = mp.Process(target=run_case_on_device, args=(device_info, args.bundleId, args.test, run_number, results_file, args.app, args.reinstall, args.device_name, args.cases))
             p.start()
             processes.append(p)
             time.sleep(0.3)

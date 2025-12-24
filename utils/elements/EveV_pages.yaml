@@ -6,11 +6,20 @@ V_HomePage:
   searchresult1: ['xpath', "//XCUIElementTypeCollectionView/XCUIElementTypeCell[1]/XCUIElementTypeOther"]
   search_button: ['xpath', "//XCUIElementTypeButton[@name='搜索']"]
   connect_wlj: ['xpath', "//XCUIElementTypeStaticText[@name='未连接']"]
-  connect_disconnect_button: ['xpath', "//XCUIElementTypeStaticText[@name='已连接']"]
+  connected_button: ['xpath', "//XCUIElementTypeStaticText[@name='已连接']"]
   connect_next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
   connect_password_input: ['xpath', "//XCUIElementTypeStaticText[@name='请输入Wi-Fi密码']"]
   connect_password_button: ['xpath', "//XCUIElementTypeButton[@name='连接']"]
   jrgl_button: ['xpath', "//XCUIElementTypeStaticText[@name='进入管理']"]
+  nm_nmms_button: ['xpath', "//XCUIElementTypeStaticText[@name='匿名模式']"]
+  nm_nmjc_button: ['xpath', "//XCUIElementTypeStaticText[@name='匿名检测']"]
+  nm_ksjc_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
+  nm_next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
+  retran_alter_button: ['xpath', "//XCUIElementTypeStaticText[@name='报告生成中断']"]
+  yes_button: ['xpath', "//XCUIElementTypeStaticText[@name='确定']"]
+  cancel_button: ['xpath', "//XCUIElementTypeStaticText[@name='取消']"]
+  biaoding_alter_button: ['xpath', "//XCUIElementTypeStaticText[@name='标定']"]
+  ignore_button: ['xpath', "//XCUIElementTypeStaticText[@name='忽略']"]
 # 用户资料页元素
 V_UserProfilePage:
   start_detect_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
@@ -30,6 +39,8 @@ V_DetectPage:
   back_button: ['xpath', "//XCUIElementTypeImage[@name='detect_back_icon']"]
   confirm_button: ['xpath', "//XCUIElementTypeStaticText[@name='确定']"]
   i_know_button: ['xpath', "//XCUIElementTypeStaticText[@name='我知道了']"]
+  continue_button: ['xpath', "//XCUIElementTypeStaticText[@name='继续']"]
+  delete_button: ['xpath', "//XCUIElementTypeStaticText[@name='删除并继续']"]
 
 # 登录页元素
 V_LoginPage:

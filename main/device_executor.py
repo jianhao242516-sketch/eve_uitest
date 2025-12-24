@@ -3,7 +3,7 @@ import yaml, time, inspect
 from utils.driver import get_driver, restart_app
 from utils.logger import Logger
 
-def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_file=None, app_path=None, reinstall=False, device_name=None):
+def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_file=None, app_path=None, reinstall=False, device_name=None, case_filters=None):
     logger = Logger(prefix=device_info.get('name', 'DEV'))
     logger.log(f"设备子进程启动: {device_info} (第{run_number}次执行)")
 
@@ -45,6 +45,21 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
     # 先读取 YAML 文件
     with open(yaml_path, 'r', encoding='utf-8') as f:
         cases = yaml.safe_load(f)
+    # 按用例名过滤（如果提供了筛选条件）
+    try:
+        if case_filters:
+            if isinstance(case_filters, str):
+                filters = [x.strip() for x in case_filters.split(',') if x.strip()]
+            elif isinstance(case_filters, list):
+                filters = [str(x).strip() for x in case_filters if str(x).strip()]
+            else:
+                filters = []
+            if filters:
+                before = len(cases) if isinstance(cases, list) else 0
+                cases = [c for c in cases if isinstance(c, dict) and c.get('name') in filters]
+                logger.log(f"仅运行指定用例: {filters}（已从 {before} 条筛到 {len(cases)} 条）")
+    except Exception as e:
+        logger.log(f"按用例名过滤时出错，将忽略过滤并运行全部用例: {e}")
     # 说明：原先这里会“收集所有用例的 setup_method 并在启动 app 前一次性执行”，
     # 这会导致后续用例的配置覆盖前面用例，且显得“第二个用例没有执行 setup”。
     # 现调整为：按用例逐条执行各自的 setup_method（见下面的用例循环）。

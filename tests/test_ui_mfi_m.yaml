@@ -1,5 +1,5 @@
 #mfi线连
-- name: '登录流程-M'
+- name: '检测流程-M'
   steps:
     # - page: 'M_LoginPage'
     #   actions:
@@ -68,14 +68,30 @@
           params: 'sx_button'    
         - method: 'wait'
           params: 10      
-        - method: 'click_element'
-          params: 'sc_button'
-        - method: 'wait'
-          params: 20
+        # - method: 'click_element'
+        #   params: 'sc_button'
+        # - method: 'wait'
+        #   params: 20
         - method: 'screenshot'
           params: 'end'
-# - name: '后台静置-M'
 
+
+
+- name: '杀app后台静置-M'
+  steps:
+    - page: 'M_HomePage'
+      actions:
+        - method: 'check_connected'
+        - method: 'screenshot'
+          params: 'before_kill'
+        - method: 'close_app'
+        - method: 'wait'
+          params: 60
+        - method: 'open_app'
+        - method: 'wait'
+          params: 10
+        - method: 'screenshot'
+          params: 'reopen_app'
 
 
 

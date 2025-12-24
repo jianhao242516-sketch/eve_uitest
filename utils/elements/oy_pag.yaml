@@ -1,0 +1,8 @@
+# oy页面元素定义 com.evelabinsight.EveOliveYoungBOH 包名
+oyPage:
+  start_detect_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
+  next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
+  still_button: ['xpath', "//XCUIElementTypeStaticText[@name='仍旧拍摄']"]
+  report_button: ['xpath', "//XCUIElementTypeStaticText[@name='综合分析']"]
+  shou1: ['xpath', "(//XCUIElementTypeImage[@name='icon_report_arrow_up'])[1]"]
+  xiaheyuan: ['xpath', "(//XCUIElementTypeStaticText[@name='下颌缘'])[3]"]

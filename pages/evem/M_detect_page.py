@@ -11,8 +11,8 @@ class M_DetectPage(BasePage):
         #轮训2分钟，查找是否有确定按钮，有的话点击，直到没有后，点击still_button
         start_time = time.time()
         clicked_confirm_once = False
-        while time.time() - start_time < 120:
-            print("轮训2分钟，查找是否有确定按钮，有的话点击，直到没有后，点击still_button")
+        while time.time() - start_time < 20:
+            print("轮训20秒，查找是否有确定按钮，有的话点击，直到没有后，点击still_button")
             # 先处理可能出现的弹窗按钮：确定 / 我知道了
             #增加继续按钮
             handled = False

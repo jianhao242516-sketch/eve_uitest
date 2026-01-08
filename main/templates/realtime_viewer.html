@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<!-- 【0108新增实时截图功能】实时截图查看器Web界面 -->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPad屏幕查看器 - 实时监控</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-group label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .control-group input[type="number"] {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #6c757d;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.active {
+            background: #28a745;
+        }
+        
+        .status-dot.error {
+            background: #dc3545;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .screenshot-container {
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .screenshot-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            background: #000;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .screenshot {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 4px;
+        }
+        
+        .screenshot-placeholder {
+            color: #6c757d;
+            font-size: 18px;
+            padding: 60px;
+        }
+        
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            text-align: left;
+            display: inline-block;
+        }
+        
+        .info-item {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #212529;
+            display: inline-block;
+            width: 120px;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            padding: 20px;
+            text-align: center;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            margin: 20px 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 iPad屏幕查看器</h1>
+            <div class="subtitle">实时监控模式 - 从UI自动化工具获取截图并实时展示</div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>刷新间隔（秒）:</label>
+                <input type="number" id="refreshInterval" value="2" min="1" max="60">
+            </div>
+            <div class="control-group">
+                <button class="btn btn-primary" id="startBtn" onclick="startMonitoring()">开始监控</button>
+                <button class="btn btn-danger" id="stopBtn" onclick="stopMonitoring()" disabled>停止监控</button>
+                <button class="btn btn-success" onclick="refreshNow()">立即刷新</button>
+            </div>
+            <div class="status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">未连接</span>
+            </div>
+        </div>
+        
+        <div id="errorMessage" style="display: none;"></div>
+        
+        <div class="screenshot-container">
+            <div id="screenshotWrapper" class="screenshot-wrapper" style="display: none;">
+                <img id="screenshot" class="screenshot" alt="实时截图">
+            </div>
+            <div id="placeholder" class="screenshot-placeholder">
+                📸 等待截图上传...<br>
+                <small style="margin-top: 10px; display: block;">请确保UI自动化工具正在上传截图到服务器</small>
+            </div>
+        </div>
+        
+        <div class="screenshot-container" style="padding-top: 0;">
+            <div class="info" id="screenshotInfo" style="display: none;">
+                <div class="info-item">
+                    <span class="info-label">更新时间:</span>
+                    <span id="updateTime">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">文件路径:</span>
+                    <span id="filePath">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let refreshTimer = null;
+        let isMonitoring = false;
+        const apiBaseUrl = window.location.origin;
+        
+        function updateStatus(status, text) {
+            const dot = document.getElementById('statusDot');
+            const textEl = document.getElementById('statusText');
+            
+            dot.className = 'status-dot';
+            if (status === 'active') {
+                dot.classList.add('active');
+            } else if (status === 'error') {
+                dot.classList.add('error');
+            }
+            
+            textEl.textContent = text;
+        }
+        
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+        
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        async function loadScreenshot() {
+            try {
+                // 先获取截图信息
+                const infoResponse = await fetch(`${apiBaseUrl}/api/screenshot/info`);
+                const info = await infoResponse.json();
+                
+                if (!info.exists) {
+                    document.getElementById('placeholder').style.display = 'block';
+                    document.getElementById('screenshotWrapper').style.display = 'none';
+                    document.getElementById('screenshotInfo').style.display = 'none';
+                    updateStatus('error', '暂无截图');
+                    return;
+                }
+                
+                // 获取截图（添加时间戳防止缓存）
+                const timestamp = new Date().getTime();
+                const screenshotUrl = `${apiBaseUrl}/api/screenshot/latest?t=${timestamp}`;
+                
+                const img = document.getElementById('screenshot');
+                img.onload = function() {
+                    document.getElementById('placeholder').style.display = 'none';
+                    document.getElementById('screenshotWrapper').style.display = 'block';
+                    document.getElementById('screenshotInfo').style.display = 'block';
+                    
+                    // 更新信息
+                    if (info.timestamp) {
+                        const date = new Date(info.timestamp);
+                        document.getElementById('updateTime').textContent = date.toLocaleString('zh-CN');
+                    }
+                    document.getElementById('filePath').textContent = info.path || '-';
+                    
+                    updateStatus('active', '已连接');
+                    hideError();
+                };
+                
+                img.onerror = function() {
+                    showError('加载截图失败');
+                    updateStatus('error', '加载失败');
+                };
+                
+                img.src = screenshotUrl;
+                
+            } catch (error) {
+                console.error('加载截图失败:', error);
+                showError('获取截图失败: ' + error.message);
+                updateStatus('error', '连接失败');
+            }
+        }
+        
+        function startMonitoring() {
+            if (isMonitoring) return;
+            
+            isMonitoring = true;
+            const interval = parseInt(document.getElementById('refreshInterval').value) * 1000;
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('refreshInterval').disabled = true;
+            
+            // 立即加载一次
+            loadScreenshot();
+            
+            // 设置定时刷新
+            refreshTimer = setInterval(loadScreenshot, interval);
+            
+            updateStatus('active', '监控中...');
+        }
+        
+        function stopMonitoring() {
+            if (!isMonitoring) return;
+            
+            isMonitoring = false;
+            
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+                refreshTimer = null;
+            }
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('refreshInterval').disabled = false;
+            
+            updateStatus('', '已停止');
+        }
+        
+        function refreshNow() {
+            loadScreenshot();
+        }
+        
+        // 页面加载时自动开始监控
+        window.addEventListener('load', function() {
+            // 延迟1秒后自动开始，给用户一个缓冲
+            setTimeout(() => {
+                startMonitoring();
+            }, 1000);
+        });
+        
+        // 页面卸载时停止监控
+        window.addEventListener('beforeunload', function() {
+            stopMonitoring();
+        });
+    </script>
+</body>
+</html>
+

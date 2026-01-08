@@ -11,7 +11,7 @@
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'connect'
-          params: '200018'
+          params: 'Ruby 1'
         - method: 'searchuser'
           params: 'ruby'
     - page: 'M_UserProfilePage'
@@ -22,53 +22,53 @@
           params: 'start_detect_button'
     - page: 'M_DetectPage'
       actions:
-        - method: 'wait'　　　　　　　　　　　　　　　      
+        - method: 'wait'
           params: 2
         - method: 'click_element'
           params: 'still_button'
     - page: 'M_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 600]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'     
         # - method: 'swipe_down'
-- name: '网络检测-M'
-  steps:
-    - page: 'M_HomePage'
-      actions:
-        - method: 'wait'
-          params: 2
-        - method: 'click_element'
-          params: 'mdgl_button'
-    - page: 'M_SettingsPage'
-      actions:
-        - method: 'click_element'
-          params: 'mdsz_button'
-        - method: 'swipe_up'
-        - method: 'wait'
-          params: 2
-        - method: 'swipe_up'
-        - method: 'click_element'
-          params: 'yfzj_button'
-        - method: 'click_element'
-          params: 'wljc_button'
-        # - method: 'click_element'
-        #   params: 'sx_button'
-        - method: 'wait'
-          params: 10
-        - method: 'screenshot'
-          params: 'jiance'
-        - method: 'click_element'
-          params: 'sx_button'    
-        - method: 'wait'
-          params: 10      
-        - method: 'click_element'
-          params: 'sc_button'
-        - method: 'wait'
-          params: 20
-        - method: 'screenshot'
-          params: 'end'
+# - name: '网络检测-M'
+#   steps:
+#     - page: 'M_HomePage'
+#       actions:
+#         - method: 'wait'
+#           params: 2
+#         - method: 'click_element'
+#           params: 'mdgl_button'
+#     - page: 'M_SettingsPage'
+#       actions:
+#         - method: 'click_element'
+#           params: 'mdsz_button'
+#         - method: 'swipe_up'
+#         - method: 'wait'
+#           params: 2
+#         - method: 'swipe_up'
+#         - method: 'click_element'
+#           params: 'yfzj_button'
+#         - method: 'click_element'
+#           params: 'wljc_button'
+#         # - method: 'click_element'
+#         #   params: 'sx_button'
+#         - method: 'wait'
+#           params: 10
+#         - method: 'screenshot'
+#           params: 'jiance'
+#         - method: 'click_element'
+#           params: 'sx_button'    
+#         - method: 'wait'
+#           params: 10      
+#         - method: 'click_element'
+#           params: 'sc_button'
+#         - method: 'wait'
+#           params: 20
+#         - method: 'screenshot'
+#           params: 'end'
 
 

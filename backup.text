@@ -31,3 +31,22 @@ curl -X POST http://172.21.19.89:8005/api/test/run \
 
 
  curl -X POST http://172.21.19.89:8005/api/test/run -H "Content-Type: application/json" -d '{"bundleId": "com.evelabinsight.MTEveEnterprise", "device": "ipad1", "test": "tests/test_ui_flow_m.yaml", "appium_host": "172.21.126.183", "device_name": "M_700025","app":"/Users/meitu/Downloads/evem_new-ios_370_1.15.30_测试环境企业包_7e077cd4-6c10-4c89-89f4-c2f177b0a835.ipa","reinstall": true,"time":100}'
+
+ 修改记录
+ 已添加注释的位置
+1. main/api_server.py
+latest_screenshot 变量定义
+upload_screenshot() 函数
+get_latest_screenshot() 函数
+get_screenshot_info() 函数
+realtime_viewer() 函数
+实时截图上传参数处理
+API文档打印部分
+2. main/device_executor.py
+启动实时截图上传线程的注释
+screenshot_upload_worker() 函数
+停止实时截图上传线程的注释
+3. main/templates/realtime_viewer.html
+HTML文件头部注释
+4. example_upload.py
+文件头部注释

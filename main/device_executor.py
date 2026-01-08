@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import yaml, time, inspect
+import threading
 from utils.driver import get_driver, restart_app
 from utils.logger import Logger
 
@@ -73,6 +74,57 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
     except Exception as e:
         logger.log(f"无法创建 driver: {e}")
         return
+    
+    # 启动实时截图上传线程（如果启用）【0108新增实时截图功能】
+    screenshot_thread = None
+    stop_screenshot_thread = threading.Event()
+    
+    if os.environ.get('REALTIME_SCREENSHOT_UPLOAD', 'false').lower() == 'true':
+        try:
+            import base64
+            import requests
+            
+            upload_url = os.environ.get('REALTIME_SCREENSHOT_API_URL', 'http://localhost:8005/api/upload')
+            upload_interval = float(os.environ.get('REALTIME_SCREENSHOT_INTERVAL', '2'))  # 默认2秒
+            
+            def screenshot_upload_worker():
+                """后台线程：定期截图并上传【0108新增实时截图功能】"""
+                while not stop_screenshot_thread.is_set():
+                    try:
+                        # 获取截图（base64编码）
+                        screenshot_base64 = driver.get_screenshot_as_base64()
+                        img_data = base64.b64decode(screenshot_base64)
+                        
+                        # 上传到服务器
+                        response = requests.post(
+                            upload_url,
+                            data=img_data,
+                            headers={'Content-Type': 'image/jpeg'},
+                            timeout=5
+                        )
+                        if response.status_code == 200:
+                            result = response.json()
+                            if result.get('success'):
+                                logger.log(f"📤 实时截图已上传")
+                            else:
+                                logger.log(f"⚠️ 上传截图失败: {result.get('error', '未知错误')}")
+                        else:
+                            logger.log(f"⚠️ 上传截图失败，HTTP状态码: {response.status_code}")
+                    except Exception as e:
+                        # 截图或上传失败不影响主流程
+                        logger.log(f"⚠️ 实时截图上传出错（不影响测试）: {e}")
+                    
+                    # 等待指定间隔，或收到停止信号
+                    if stop_screenshot_thread.wait(upload_interval):
+                        break  # 收到停止信号
+            
+            screenshot_thread = threading.Thread(target=screenshot_upload_worker, daemon=True)
+            screenshot_thread.start()
+            logger.log(f"📸 实时截图上传线程已启动（间隔: {upload_interval}秒）")
+        except ImportError:
+            logger.log("⚠️ requests库未安装，无法启用实时截图上传。请运行: pip install requests")
+        except Exception as e:
+            logger.log(f"⚠️ 启动实时截图上传线程失败: {e}")
 
     for case_index, case in enumerate(cases):
         logger.log(f"开始用例 ({case_index + 1}/{len(cases)}): {case.get('name')}")
@@ -403,6 +455,12 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
             logger.log(f"⏳ 等待3秒后执行下一个用例...")
             time.sleep(3)
 
+    # 停止实时截图上传线程【0108新增实时截图功能】
+    if screenshot_thread and screenshot_thread.is_alive():
+        stop_screenshot_thread.set()
+        screenshot_thread.join(timeout=2)  # 等待最多2秒
+        logger.log('📸 实时截图上传线程已停止')
+    
     try:
         driver.quit()
     except Exception:

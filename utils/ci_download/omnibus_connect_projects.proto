@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package omnibus.connect.projects;
+
+// 获取所有应用
+// GET api/connect/apps
+message Apps {
+    repeated App content = 1;
+}
+
+message App {
+    // 应用uid
+    string uid = 1;
+    // 应用名称
+    string name = 2;
+    // 应用图标
+    string icon = 3;
+    // 应用code
+    string code = 4;
+    // 所属项目
+    Project project = 5;
+}
+
+message Project {
+    // 项目uid
+    string uid = 1;
+    // 项目名称
+    string name = 2;
+    // 项目图标
+    string icon = 3;
+    // 项目code
+    string code = 4;
+}

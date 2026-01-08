@@ -7,7 +7,7 @@
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'check_connected'
-          params: 'M_s300048'
+          params: 'M_s300003'
         - method: 'searchuser'
           params: 'Ios检测'
     - page: 'M_UserProfilePage'

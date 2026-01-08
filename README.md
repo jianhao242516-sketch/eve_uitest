@@ -63,31 +63,63 @@ curl http://localhost:8005/api/test/status/<task_id>
 ```
 ruby_eve_uitest/
 ├── main/                    # 主程序入口
-│   ├── run_ui.py           # 测试执行主程序
-│   └── device_executor.py  # 单设备执行器
+│   ├── api_server.py        # HTTP API 服务
+│   ├── run_test.py          # 测试执行程序（API调用）
+│   ├── run_ui.py            # UI测试执行主程序
+│   └── device_executor.py   # 单设备执行器
+├── api_scripts/             # API脚本工具
+│   ├── _config.py           # API配置
+│   ├── _request.py          # 请求工具
+│   ├── handle_switch.py     # 开关处理
+│   └── test_setup_methods.py # 前置和清理方法定义
 ├── pages/                   # 页面对象
-│   ├── base_page.py        # 基础页面类（所有页面继承此类）
-│   ├── home_page.py        # 首页（可选，支持动态创建）
-│   ├── login_page.py       # 登录页（可选，支持动态创建）
-│   └── ...                 # 其他页面类（可选）
+│   ├── evem/                # EveM应用页面
+│   │   ├── base_page.py     # 基础页面类
+│   │   ├── M_detect_page.py # 检测页面
+│   │   ├── M_home_page.py   # 首页
+│   │   └── M_login_page.py  # 登录页
+│   ├── evev/                # EveV应用页面
+│   │   ├── base_page.py     # 基础页面类
+│   │   ├── V_detect_page.py # 检测页面
+│   │   ├── V_home_page.py   # 首页
+│   │   ├── V_login_page.py  # 登录页
+│   │   ├── V_report_page.py # 报告页
+│   │   └── V_user_profile_page.py # 用户资料页
+│   └── other/               # 其他页面
+│       └── base_page.py     # 基础页面类
 ├── tests/                   # 测试用例
-│   ├── test_cj_collect_flow_element.yaml  # 采集流程测试
-│   ├── test_chanel_flow.yaml              # Chanel流程测试
-│   └── test_ui_flow.yaml                  # UI流程测试
+│   ├── oy/                  # oy测试用例目录
+│   │   └── test_press_flow.yaml
+│   ├── test_api_M.yaml      # EveM API测试
+│   ├── test_api_V.yaml      # EveV API测试
+│   ├── test_chanel_flow.yaml # Chanel流程测试
+│   ├── test_cj_collect_flow_element.yaml # 采集流程测试
+│   ├── test_press_flow_m.yaml # EveM按压流程测试
+│   ├── test_press_flow_v.yaml # EveV按压流程测试
+│   ├── test_ui_flow.yaml    # UI流程测试
+│   ├── test_ui_flow_m.yaml  # EveM UI流程测试
+│   └── test_ui_mfi_m.yaml   # EveM MFI测试
 ├── utils/                   # 工具类
 │   ├── devices.yaml         # 设备配置
+│   ├── driver.py            # 驱动配置
+│   ├── logger.py            # 日志工具
+│   ├── popups.yaml          # 弹窗配置
 │   ├── elements/            # 元素定位配置目录
+│   │   ├── EveM_pages.yaml  # EveM页面元素
 │   │   ├── EveV_pages.yaml  # EveV页面元素
 │   │   ├── cj_pages.yaml    # 采集相关页面元素
-│   │   └── chanel_page.yaml # Chanel页面元素
-│   ├── popups.yaml          # 弹窗配置
-│   ├── driver.py            # 驱动配置
-│   └── logger.py            # 日志工具
-└── screenshots/             # 截图目录
-    └── run_YYYYMMDD_HHMMSS/ # 运行时间戳目录
-        └── times_X/          # 第X次执行
-            └── case_Y/       # 第Y个用例
-                └── *.png     # 截图文件
+│   │   ├── chanel_page.yaml # Chanel页面元素
+│   │   └── oy_pag.yaml      # oy页面元素
+│   └── ci_download/         # CI下载工具
+│       ├── download_New_ipa.py # IPA下载脚本
+│       └── *.proto          # Protocol Buffer定义文件
+├── screenshots/             # 截图目录
+│   └── run_YYYYMMDD_HHMMSS/ # 运行时间戳目录
+│       └── times_X/         # 第X次执行
+│           └── case_Y/      # 第Y个用例
+│               └── *.png    # 截图文件
+└── logs/                    # 日志目录
+    └── *.log                # 日志文件
 ```
 
 ## 🛠️ 安装配置

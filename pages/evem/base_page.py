@@ -157,9 +157,51 @@ class BasePage:
         print(f"✅ 已向元素 {element_name} 输入文本: {value}")
 
     def click(self, by, locator):
-        """点击元素"""
+        """点击元素
+        
+        对于 StaticText 等可能不可直接点击的元素，会：
+        1. 先检查元素是否可点击，如果可点击则直接点击
+        2. 如果不可点击或点击失败，使用坐标点击（点击元素中心）
+        3. 如果还失败，尝试点击父元素
+        """
         el = self.find(by, locator)
-        el.click()
+        
+        # 检查元素是否可点击
+        try:
+            # 尝试等待元素可点击（最多等待1秒）
+            wait_clickable = WebDriverWait(self.driver, 1)
+            clickable_el = wait_clickable.until(EC.element_to_be_clickable((by, locator)))
+            clickable_el.click()
+            print(f"✅ 元素可点击，已直接点击")
+        except Exception:
+            # 如果元素不可点击或等待超时，使用坐标点击
+            print(f"⚠️ 元素可能不可直接点击，使用坐标点击")
+            try:
+                location = el.location
+                size = el.size
+                center_x = location['x'] + size['width'] / 2
+                center_y = location['y'] + size['height'] / 2
+                print(f"📍 使用元素中心坐标点击: ({int(center_x)}, {int(center_y)})")
+                self.driver.tap([(int(center_x), int(center_y))])
+                print(f"✅ 已通过坐标点击元素")
+            except Exception as coord_error:
+                # 如果坐标点击也失败，尝试点击父元素
+                print(f"⚠️ 坐标点击也失败，尝试点击父元素: {coord_error}")
+                try:
+                    # 获取父元素并点击
+                    parent = el.find_element(AppiumBy.XPATH, "..")
+                    parent_location = parent.location
+                    parent_size = parent.size
+                    parent_center_x = parent_location['x'] + parent_size['width'] / 2
+                    parent_center_y = parent_location['y'] + parent_size['height'] / 2
+                    print(f"📍 使用父元素中心坐标点击: ({int(parent_center_x)}, {int(parent_center_y)})")
+                    self.driver.tap([(int(parent_center_x), int(parent_center_y))])
+                    print(f"✅ 已通过父元素坐标点击")
+                except Exception as parent_error:
+                    # 所有方法都失败，抛出异常
+                    error_msg = f"❌ 所有点击方法都失败: 直接点击失败，坐标点击失败({coord_error})，父元素点击失败({parent_error})"
+                    print(error_msg)
+                    raise Exception(error_msg) from parent_error
 
     def click_by_coordinates(self, x, y):
         """通过坐标点击

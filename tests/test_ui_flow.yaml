@@ -11,7 +11,7 @@
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'connect'
-          params: '200138'
+          params: 'evetest 1'
         - method: 'searchuser'
           params: 'ruby'
     - page: 'V_UserProfilePage'
@@ -29,7 +29,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 600]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'

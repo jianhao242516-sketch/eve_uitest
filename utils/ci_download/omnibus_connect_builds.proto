@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package omnibus.connect.builds;
+
+import "google/protobuf/timestamp.proto";
+
+// 获取构建列表
+// GET api/apps/{appUid}/builds
+message BuildsPage {
+    Page page = 1;
+    repeated Build content = 2;
+}
+
+message Page {
+    int32 number = 1;
+    int32 size = 2;
+    int64 totalElements = 3;
+    int32 totalPages = 4;
+}
+
+message Build {
+    // 构建uid
+    string uid = 1;
+    // 构建号
+    int32 number = 2;
+    // 应用uid
+    string appUid = 3;
+    // 开始时间
+    google.protobuf.Timestamp startTime = 4;
+    // 版本
+    string version = 5;
+    // 结果
+    Result result = 6;
+    // 版本控制信息（可为空）
+    Vcs vcs = 7;
+    // 构建系统关联信息（可为空）
+    BuildPlatform buildPlatform = 8;
+    // variant列表
+    repeated Variant variants = 9;
+    // runner列表
+    repeated Runner runners = 10;
+    // 页面url
+    string webUrl = 11;
+
+    enum Result {
+        PENDING = 0;
+        SUCCESS = 1;
+        FAILURE = 2;
+    }
+}
+
+message Vcs {
+    // 版本控制 commitId
+    string commit = 1;
+    // 版本控制 refs/heads/develop | refs/tags/v1.0.0
+    string ref = 2;
+}
+
+message BuildPlatform {
+    // 构建类型（可为空）
+    string buildType = 1;
+    // 配置名称（可为空）
+    string configName = 2;
+}
+
+message Variant {
+    // variant uid
+    string uid = 1;
+    // variant 名称
+    string name = 2;
+    // 构建业务组件列表<组件名称，组件信息>
+    map<string, Component> components = 3;
+    // 构建uid
+    string buildUid = 4;
+    // artifact列表
+    repeated Artifact artifacts = 5;
+    // runner number
+    int32 runnerNumber = 6;
+    // 页面url
+    string webUrl = 7;
+}
+
+message Component {
+    // 构建组件版本
+    int32 version = 1;
+    // 构建 scope 构建组件数据<属性名称，属性值>
+    map<string, Value> data = 2;
+}
+
+message Value {
+    oneof kind {
+        string string_value = 1;
+        int64 int_value = 2;
+        double double_value = 3;
+        bool bool_value = 4;
+    }
+}
+
+message Runner {
+    // runner number
+    int32 number = 1;
+    // runner 状态
+    string status = 2;
+}
+
+message Artifact {
+    // artifact类型
+    string classifier = 1;
+    // artifact名称
+    string name = 2;
+    // variant名称
+    string variant = 3;
+    // 组件名称: android、ios、windows、macos 等
+    string component = 4;
+    // artifact属性<属性名称，属性值>
+    map<string, Value> attributes = 5;
+    // 文件信息
+    File file = 6;
+}
+
+message File {
+    // 文件url
+    string url = 1;
+    // 文件sha1
+    string sha1 = 2;
+    // 文件名
+    string name = 3;
+    // 文件长度
+    int64 length = 4;
+}
+
+// 获取构建产物列表
+// GET api/apps/{appUid}/builds/{buildUid|number}/artifacts
+message Artifacts {
+    repeated Artifact content = 1;
+}
+

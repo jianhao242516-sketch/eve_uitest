@@ -90,6 +90,7 @@
   steps:
     - page: 'CjSearchXmPage'
       actions:
+        - method: 'open_app'
         # - method: 'check_and_handle_popups'
         #   params: 3
         - method: 'click_element'

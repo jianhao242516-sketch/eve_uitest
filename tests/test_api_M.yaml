@@ -6,6 +6,7 @@
   steps:
     - page: 'M_LoginPage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'login'
@@ -44,6 +45,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'check_connected'
@@ -74,6 +76,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'check_connected'
@@ -106,6 +109,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'check_connected'
@@ -131,6 +135,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'check_connected'
@@ -163,6 +168,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'check_connected'
@@ -196,6 +202,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'screenshot'
@@ -210,6 +217,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'screenshot'
@@ -223,6 +231,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'screenshot'

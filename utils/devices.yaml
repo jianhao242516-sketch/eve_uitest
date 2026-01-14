@@ -1,5 +1,5 @@
 devices:
-  - name: "25iPad"
+  - name: "iPad25"
     udid: "00008120-0004086930214032"
     platformName: "iOS"
     appium_port: 4723 

@@ -1,7 +1,9 @@
+#持续集成UI自动化测试脚本
 - name: '登录流程-M'
   steps:
     - page: 'M_LoginPage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'login'
@@ -11,7 +13,7 @@
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'connect'
-          params: 'Ruby 1'
+          params: 'ruby 1'
         - method: 'searchuser'
           params: 'ruby'
     - page: 'M_UserProfilePage'

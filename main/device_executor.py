@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import yaml, time, inspect
 import threading
-from utils.driver import get_driver, restart_app
+from utils.driver import get_driver
 from utils.logger import Logger
+
+# 需要执行哆啦A梦关闭网线直连和标定弹窗的app标识集合
+APPS_REQUIRING_INITIALIZATION = {'MTKing', 'LaPrairie'}
 
 def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_file=None, app_path=None, reinstall=False, device_name=None, case_filters=None):
     logger = Logger(prefix=device_info.get('name', 'DEV'))
@@ -11,6 +14,10 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
     # 设置环境变量，传递运行次数信息给截图功能
     import os
     os.environ['CURRENT_RUN_NUMBER'] = str(run_number)
+    
+    # [0114]设置环境变量，传递设备名给截图功能（用于截图路径）
+    device_name_for_screenshot = device_info.get('name', 'DEV')
+    os.environ['DEVICE_NAME'] = device_name_for_screenshot
     
     # 设置环境变量，传递运行时传入的 device_name（如果提供了）
     if device_name:
@@ -25,7 +32,8 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
         'passed': 0,
         'failed': 0,
         'device_name': device_info.get('name', 'DEV'),
-        'run_number': run_number
+        'run_number': run_number,
+        'error_messages': []  # 0113新增：保存所有失败用例的错误信息，用于飞书通知
     }
 
     # 如果传入的是 .py 文件，自动尝试 .yaml 文件
@@ -147,25 +155,104 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
         import os
         os.environ['CURRENT_CASE_INDEX'] = str(case_index + 1)
         
-        # 每个用例开始时重启APP，确保环境干净
+        # 0114修改：智能启动APP - 如果app未运行则启动，如果已运行则跳过
         try:
-            logger.log(f"🔄 重启APP为用例做好准备...")
-            restart_app(driver, bundle_id)
-            logger.log(f"✅ APP已重启")
-            time.sleep(2)  # 给APP一点启动时间
-        except Exception as e:
-            logger.log(f"⚠️ 重启APP失败: {e}")
-        
-        # 只有在第一个用例且重新安装 app 且 bundleId 包含 "MTKing" 时才执行初始化操作
-        if case_index == 0 and reinstall and app_path:
-            if bundle_id and 'MTKing' in bundle_id:
+            if bundle_id:
+                # 检测app是否在运行（iOS使用query_app_state，Android使用current_package）
+                app_running = False
+                app_state = None
+                check_success = False
+                
                 try:
-                    logger.log("🔧 检测到重新安装且 bundleId 包含 'MTKing'，开始执行 App 初始化操作...")
+                    platform = device_info.get("platformName", "iOS")
+                    if platform == "iOS":
+                        # iOS: query_app_state 返回状态值
+                        # 0=未安装, 1=未运行, 2=后台运行, 3=前台运行, 4=后台挂起
+                        app_state = driver.query_app_state(bundle_id)
+                        check_success = True
+                        # 只有状态3（前台运行）才跳过启动，其他状态都需要启动到前台
+                        app_running = (app_state == 3)  # 只有前台运行才跳过
+                        state_desc = {0: '未安装', 1: '未运行', 2: '后台运行', 3: '前台运行', 4: '后台挂起'}.get(app_state, f'未知({app_state})')
+                        logger.log(f"📱 App状态检测: {app_state} ({state_desc}) - {'前台运行，跳过启动' if app_running else '需要启动到前台'}")
+                    else:
+                        # Android: 检查当前包名
+                        try:
+                            current_package = driver.current_package
+                            check_success = True
+                            app_running = (current_package == bundle_id)
+                            logger.log(f"📱 App状态检测: 当前包名={current_package}, 目标={bundle_id} ({'运行中' if app_running else '未运行，需要启动'})")
+                        except Exception:
+                            # Android可能无法获取current_package，假设未运行
+                            app_running = False
+                            logger.log(f"📱 App状态检测: 无法获取当前包名，假设未运行，需要启动")
+                except Exception as check_error:
+                    # 如果检测失败，假设app未运行，尝试启动
+                    logger.log(f"⚠️ 检测app状态失败: {check_error}，将尝试启动app")
+                    app_running = False
+                    check_success = False
+                
+                # 如果是第一个用例，无论什么状态都重启（先关闭再启动）
+                if case_index == 0:
+                    if app_running or (check_success and app_state in [2, 3, 4]):
+                        # App在运行，需要先关闭再启动（重启）
+                        logger.log(f"🔧 第一个用例，app在运行，先关闭再启动（重启）")
+                        try:
+                            driver.terminate_app(bundle_id)
+                            logger.log(f"✅ App已关闭")
+                            time.sleep(1)  # 等待关闭完成
+                        except Exception as terminate_error:
+                            logger.log(f"⚠️ 关闭app失败: {terminate_error}，继续启动")
+                        # 然后启动
+                        logger.log(f"🚀 正在启动app: {bundle_id}")
+                        try:
+                            driver.execute_script("mobile: launchApp", {"bundleId": bundle_id})
+                            logger.log(f"✅ App已启动")
+                            time.sleep(2)  # 等待app启动
+                        except Exception as launch_error:
+                            logger.log(f"❌ 启动app失败: {launch_error}")
+                    else:
+                        # App未运行，直接启动
+                        logger.log(f"🔧 第一个用例，app未运行，直接启动")
+                        logger.log(f"🚀 正在启动app: {bundle_id}")
+                        try:
+                            driver.execute_script("mobile: launchApp", {"bundleId": bundle_id})
+                            logger.log(f"✅ App已启动")
+                            time.sleep(2)  # 等待app启动
+                        except Exception as launch_error:
+                            logger.log(f"❌ 启动app失败: {launch_error}")
+                elif not app_running:
+                    # 后续用例：App未运行，需要启动
+                    logger.log(f"🚀 App未运行，正在启动: {bundle_id}")
+                    try:
+                        driver.execute_script("mobile: launchApp", {"bundleId": bundle_id})
+                        logger.log(f"✅ App已启动")
+                        time.sleep(2)  # 等待app启动
+                    except Exception as launch_error:
+                        logger.log(f"❌ 启动app失败: {launch_error}")
+                        # 启动失败不影响继续执行，可能app已经在运行
+                else:
+                    logger.log(f"ℹ️ App已在运行，跳过启动")
+            else:
+                logger.log(f"⚠️ 未提供bundle_id，无法检测和启动app")
+        except Exception as e:
+            logger.log(f"⚠️ 启动APP过程出错: {e}")
+            import traceback
+            logger.log(f"错误详情: {traceback.format_exc()}")
+        
+        # 只有在第一个用例且重新安装 app 且 bundleId 包含需要初始化的应用标识时才执行初始化操作
+        if case_index == 0 and reinstall and app_path:
+            if bundle_id and any(app_id in bundle_id for app_id in APPS_REQUIRING_INITIALIZATION):
+                try:
+                    app_names = [app_id for app_id in APPS_REQUIRING_INITIALIZATION if app_id in bundle_id]
+                    logger.log(f"🔧 检测到重新安装且 bundleId 包含 {app_names}，开始执行 App 初始化操作...")
                     from pages.evev.base_page import initialize_app
                     initialize_app(driver)
                     logger.log("✅ App 初始化操作完成")
                 except Exception as e:
                     logger.log(f"⚠️ App 初始化操作出错: {e}")
+        
+        # 0113新增：初始化当前用例的错误列表，用于收集失败信息并发送到飞书
+        current_case_errors = []
         
         for step in case.get('steps', []):
             if case_failed:  # 如果用例已失败，跳过后续步骤
@@ -174,15 +261,17 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
             page_name = step.get('page')
             actions = step.get('actions', [])
             
-            # 根据页面名称前缀或 bundleId 判断项目类型
+            # 根据 bundleId 判断项目类型
             # 优先级：页面名称前缀 > bundleId
             # M_ -> evem, V_ -> evev
             if page_name.startswith('M_'):
                 project_dir = 'evem'
             elif page_name.startswith('V_'):
                 project_dir = 'evev'
-            elif bundle_id and 'eve' in bundle_id.lower():
+            elif bundle_id == 'com.evelabinsight.MTKingEnterprise':
                 project_dir = 'evev'
+            elif bundle_id == 'com.evelabinsight.MTEveEnterprise':
+                project_dir = 'evem'
             else:
                 project_dir = 'other'
             
@@ -222,22 +311,58 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                 else:
                     # 普通页面名称
                     module_name = re.sub(r'(?<!^)(?=[A-Z])', '_', page_name).lower()  # LoginPage -> login_page
-                    
-                    # 尝试从项目目录加载
+                    print(f"module_name: {module_name}")
+                    print(f"project_dir: {project_dir}")
+                    # 尝试从项目目录加载（支持下划线命名）
                     try:
                         module = __import__(f"pages.{project_dir}.{module_name}", fromlist=[page_name])
-                        page_class = getattr(module, page_name, None)
+                        # 尝试查找类名（先尝试原样，再尝试首字母大写）
+                        page_class = getattr(module, page_name, None) or getattr(module, page_name.capitalize(), None)
                         if page_class:
                             logger.log(f"✅ 从 {project_dir} 项目加载页面类: {page_name}")
                     except (ImportError, AttributeError):
-                        # 如果项目目录中找不到，尝试从根目录加载（向后兼容）
+                        # 如果下划线命名找不到，尝试驼峰命名（原样使用 page_name）
                         try:
-                            module = __import__(f"pages.{module_name}", fromlist=[page_name])
-                            page_class = getattr(module, page_name, None)
+                            logger.log(f"🔍 尝试驼峰命名: pages.{project_dir}.{page_name}")
+                            module = __import__(f"pages.{project_dir}.{page_name}", fromlist=[page_name])
+                            # 尝试查找类名（先尝试原样，再尝试首字母大写）
+                            page_class = getattr(module, page_name, None) or getattr(module, page_name.capitalize(), None)
                             if page_class:
-                                logger.log(f"✅ 从根目录加载页面类: {page_name}")
+                                logger.log(f"✅ 从 {project_dir} 项目加载页面类: {page_name} (驼峰命名)")
                         except (ImportError, AttributeError):
                             pass
+                    
+                    # 如果项目目录中找不到，尝试从 other 目录加载
+                    if page_class is None and project_dir != 'other':
+                        # 先尝试下划线命名
+                        try:
+                            logger.log(f"🔍 尝试从 other 目录加载: pages.other.{module_name}")
+                            module = __import__(f"pages.other.{module_name}", fromlist=[page_name])
+                            page_class = getattr(module, page_name, None) or getattr(module, page_name.capitalize(), None)
+                            if page_class:
+                                logger.log(f"✅ 从 other 项目加载页面类: {page_name}")
+                        except (ImportError, AttributeError):
+                            # 再尝试驼峰命名
+                            try:
+                                logger.log(f"🔍 尝试从 other 目录加载（驼峰）: pages.other.{page_name}")
+                                module = __import__(f"pages.other.{page_name}", fromlist=[page_name])
+                                # 尝试查找类名：先尝试首字母大写（LaprairiePage），再尝试原样（laprairiePage）
+                                class_name = page_name[0].upper() + page_name[1:] if page_name else page_name
+                                page_class = getattr(module, class_name, None) or getattr(module, page_name, None)
+                                if page_class:
+                                    logger.log(f"✅ 从 other 项目加载页面类: {class_name if getattr(module, class_name, None) else page_name} (驼峰命名)")
+                            except (ImportError, AttributeError):
+                                pass
+                        
+                        # 如果还是找不到，尝试从根目录加载（向后兼容）
+                        if page_class is None:
+                            try:
+                                module = __import__(f"pages.{module_name}", fromlist=[page_name])
+                                page_class = getattr(module, page_name, None) or getattr(module, page_name.capitalize(), None)
+                                if page_class:
+                                    logger.log(f"✅ 从根目录加载页面类: {page_name}")
+                            except (ImportError, AttributeError):
+                                pass
             except Exception as e:
                 logger.log(f"⚠️ 页面类 {page_name} 不存在，将动态创建: {e}")
             
@@ -357,7 +482,10 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                                     logger.log(f"📸 失败截图已保存: {file_path}")
                         except Exception as shot_err:
                             logger.log(f"⚠️ 失败截图出错: {shot_err}")
-                        logger.log(f"❌ 方法返回 False，标记用例失败: {page_name}.{method_name}")
+                        error_msg = f"方法返回 False: {page_name}.{method_name}"
+                        logger.log(f"❌ {error_msg}")
+                        # 0113新增：保存错误信息到当前用例的错误列表中，用于飞书通知
+                        current_case_errors.append(error_msg)
                         case_failed = True
                         break  # 跳出action循环
                     
@@ -375,7 +503,10 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                                 logger.log(f"📸 失败截图已保存: {file_path}")
                     except Exception as shot_err:
                         logger.log(f"⚠️ 失败截图出错: {shot_err}")
-                    logger.log(f"断言失败: {method_name} - {str(e)}")
+                    error_msg = f"断言失败: {method_name} - {str(e)}"
+                    logger.log(f"❌ {error_msg}")
+                    # 0113新增：保存错误信息到当前用例的错误列表中，用于飞书通知
+                    current_case_errors.append(error_msg)
                     case_failed = True  # 标记用例失败
                     break  # 跳出action循环
                 except Exception as e:
@@ -411,6 +542,8 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                         logger.log(f"❌ 元素找不到或超时，立即停止执行当前用例: {case.get('name')}")
                         logger.log(f"   错误类型: {error_type}")
                         logger.log(f"   错误信息: {error_msg}")
+                        # 0113新增：保存错误信息到当前用例的错误列表中，用于飞书通知
+                        current_case_errors.append(f"{error_type}: {error_msg}")
                         case_failed = True  # 标记用例失败
                         break  # 跳出action循环
                     else:
@@ -418,12 +551,22 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                         logger.log(f"❌ 执行出错，停止执行当前用例: {case.get('name')}")
                         logger.log(f"   错误类型: {error_type}")
                         logger.log(f"   错误信息: {error_msg}")
+                        # 0113新增：保存错误信息到当前用例的错误列表中，用于飞书通知
+                        current_case_errors.append(f"{error_type}: {error_msg}")
                         case_failed = True  # 标记用例失败
                         break  # 跳出action循环
         
         if case_failed:
             logger.log(f"❌ 用例失败: {case.get('name')}")
             test_results['failed'] += 1
+            # 0113新增：将当前用例的错误信息保存到测试结果中，用于飞书通知
+            if current_case_errors:
+                case_error_info = {
+                    'case_name': case.get('name', '未知用例'),
+                    'errors': current_case_errors
+                }
+                test_results['error_messages'].append(case_error_info)
+                logger.log(f"📝 已保存用例失败信息: {case.get('name')} - {len(current_case_errors)} 个错误")
         else:
             logger.log(f"✅ 用例通过: {case.get('name')}")
             test_results['passed'] += 1
@@ -442,13 +585,13 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                 logger.log(f"⚠️ 执行清理方法时出错: {e}")
                 # 清理方法出错不阻止后续操作，只记录警告
         
-        # 用例执行完后关闭 app
-        try:
-            logger.log(f"🔒 关闭 app...")
-            driver.terminate_app(bundle_id)
-            logger.log(f"✅ App 已关闭")
-        except Exception as e:
-            logger.log(f"⚠️ 关闭 app 失败: {e}")
+        # 用例执行完后关闭 app 0114修改：不关闭app，让用例自己关闭
+        # try:
+        #     logger.log(f"🔒 关闭 app...")
+        #     driver.terminate_app(bundle_id)
+        #     logger.log(f"✅ App 已关闭")
+        # except Exception as e:
+        #     logger.log(f"⚠️ 关闭 app 失败: {e}")
         
         # 用例之间等待，确保串行执行
         if case_index < len(cases) - 1:  # 不是最后一个用例

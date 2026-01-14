@@ -1,0 +1,112 @@
+
+- name: '安装和检测'
+  steps:
+    - page: 'V_LoginPage'
+      actions:
+        - method: 'open_app'
+        - method: 'login'
+          params: ['lpzgmd', 'Test123#']
+    - page: 'V_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'connect'
+          params: 'evetest 1'
+        - method: 'wait'
+          params: 3
+    - page: 'LaprairiePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'next_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'xy_start_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_wj1'
+        - method: 'click_element'
+          params: 'comform_button'
+        - method: 'click_element'
+          params: 'start_button'
+        - method: 'click_element'
+          params: 'still_button'
+        - method: 'wait_for_element_to_appear'
+          params: ['report_button', 600]
+        - method: 'screenshot'
+          params: 'report'
+        - method: 'close_app'
+
+- name: '检测'
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'open_app'
+        - method: 'check_connected'  
+    - page: 'LaprairiePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'next_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'xy_start_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_wj1'
+        - method: 'click_element'
+          params: 'comform_button'
+        - method: 'click_element'
+          params: 'start_button'
+        - method: 'click_element'
+          params: 'still_button'
+        - method: 'wait_for_element_to_appear'
+          params: ['report_button', 600]
+        - method: 'screenshot'
+          params: 'report'
+        - method: 'close_app'
+
+- name: '检测不杀app'
+  steps:
+    - page: 'V_HomePage'
+      actions:
+        - method: 'open_app'
+        - method: 'check_connected'  
+    - page: 'LaprairiePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'next_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'xy_start_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_wj1'
+        - method: 'click_element'
+          params: 'comform_button'
+        - method: 'click_element'
+          params: 'start_button'
+        - method: 'wait'
+          params: 2
+        - method: 'click_element'
+          params: 'still_button'
+        - method: 'wait_for_element_to_appear'
+          params: ['report_button', 600]
+        - method: 'screenshot'
+          params: 'report'
+        - method: 'back_to_home'
+        - method: 'screenshot'
+          params: 'end'     

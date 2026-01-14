@@ -1,101 +1,102 @@
-- name: '检测完成中断-V'
-  steps:
-    - page: 'V_HomePage'
-      actions:
-        - method: 'check_homepage_alter'
-        # - method: 'isHomePage'
-        - method: 'check_connected'
-        #   params: 'V_200004'
-        - method: 'wait'
-          params: 3
-        - method: 'searchuser'
-          params: 'Ios检测'
-    - page: 'V_UserProfilePage'
-      actions:
-        - method: 'click_element'
-          params: 'start_detect_button'
-        - method: 'screenshot'
-          params: 'start_detect_button'
-    - page: 'V_DetectPage'
-      actions:
-        - method: 'wait'
-          params: 2
-        - method: 'detect_success'
-        - method: 'wait'  
-          params: 35
-        - method: 'close_app'
+# - name: '检测完成中断-V'
+#   steps:
+#     - page: 'V_HomePage'
+#       actions:
+#         - method: 'check_homepage_alter'
+#         # - method: 'isHomePage'
+#         - method: 'check_connected'
+#         #   params: 'V_200004'
+#         - method: 'wait'
+#           params: 3
+#         - method: 'searchuser'
+#           params: 'Ios检测'
+#     - page: 'V_UserProfilePage'
+#       actions:
+#         - method: 'click_element'
+#           params: 'start_detect_button'
+#         - method: 'screenshot'
+#           params: 'start_detect_button'
+#     - page: 'V_DetectPage'
+#       actions:
+#         - method: 'wait'
+#           params: 2
+#         - method: 'detect_success'
+#         - method: 'wait'  
+#           params: 35
+#         - method: 'close_app'
 
-- name: '重传-V'
-  steps:
-    - page: 'V_HomePage'
-      actions:
-        - method: 'check_homepage_alter'
-        # - method: 'isHomePage'
-        - method: 'check_connected'
-        #   params: 'V_200004'
-        - method: 'wait'
-          params: 3
-        - method: 'searchuser'
-          params: 'Ios检测'
-    - page: 'V_UserProfilePage'
-      actions:
-        - method: 'click_element'
-          params: 'start_detect_button'
-        - method: 'screenshot'
-          params: 'start_detect_button'
-    - page: 'V_DetectPage'
-      actions:
-        - method: 'wait'
-          params: 2
-        - method: 'detect_success'
-        - method: 'wait'  
-          params: 35
-        - method: 'close_app'
-    - page: 'V_HomePage'
-      actions:
-        - method: 'open_app'
-        - method: 'wait'
-          params: 8
-        - method: 'click_element'
-          params: 'yes_button'
-    - page: 'V_ReportPage'
-      actions:
-        - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
-        - method: 'swipe_up'
-        - method: 'screenshot'
-          params: 'end'
-        - method: 'close_app'
+# - name: '重传-V'
+#   steps:
+#     - page: 'V_HomePage'
+#       actions:
+#         - method: 'check_homepage_alter'
+#         # - method: 'isHomePage'
+#         - method: 'check_connected'
+#         #   params: 'V_200004'
+#         - method: 'wait'
+#           params: 3
+#         - method: 'searchuser'
+#           params: 'Ios检测'
+#     - page: 'V_UserProfilePage'
+#       actions:
+#         - method: 'click_element'
+#           params: 'start_detect_button'
+#         - method: 'screenshot'
+#           params: 'start_detect_button'
+#     - page: 'V_DetectPage'
+#       actions:
+#         - method: 'wait'
+#           params: 2
+#         - method: 'detect_success'
+#         - method: 'wait'  
+#           params: 35
+#         - method: 'close_app'
+#     - page: 'V_HomePage'
+#       actions:
+#         - method: 'open_app'
+#         - method: 'wait'
+#           params: 8
+#         - method: 'click_element'
+#           params: 'yes_button'
+#     - page: 'V_ReportPage'
+#       actions:
+#         - method: 'wait_for_element_to_appear'
+#           params: ['zhfx', 200]
+#         - method: 'swipe_up'
+#         - method: 'screenshot'
+#           params: 'end'
+#         - method: 'close_app'
 
-- name: '匿名检测完成中断-V'
-  steps:
-    - page: 'V_HomePage'
-      actions:
-        - method: 'check_homepage_alter'
-        # - method: 'isHomePage'
-        - method: 'check_connected'
-        #   params: 'V_200004'
-        - method: 'wait'
-          params: 3
-        - method: 'click_element'
-          params: 'nm_nmms_button'
-        - method: 'click_element'
-          params: 'nm_nmjc_button'
-        - method: 'click_element'
-          params: 'nm_next_button'
-    - page: 'V_DetectPage'
-      actions:
-        - method: 'wait'
-          params: 2
-        - method: 'detect_success'
-        - method: 'wait'  
-          params: 35
-        - method: 'close_app'
+# - name: '匿名检测完成中断-V'
+#   steps:
+#     - page: 'V_HomePage'
+#       actions:
+#         - method: 'check_homepage_alter'
+#         # - method: 'isHomePage'
+#         - method: 'check_connected'
+#         #   params: 'V_200004'
+#         - method: 'wait'
+#           params: 3
+#         - method: 'click_element'
+#           params: 'nm_nmms_button'
+#         - method: 'click_element'
+#           params: 'nm_nmjc_button'
+#         - method: 'click_element'
+#           params: 'nm_next_button'
+#     - page: 'V_DetectPage'
+#       actions:
+#         - method: 'wait'
+#           params: 2
+#         - method: 'detect_success'
+#         - method: 'wait'  
+#           params: 35
+#         - method: 'close_app'
 
 - name: '检测完成-V'
   steps:
     - page: 'V_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_homepage_alter'
         # - method: 'isHomePage'
         - method: 'check_connected'
@@ -118,7 +119,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 600]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'

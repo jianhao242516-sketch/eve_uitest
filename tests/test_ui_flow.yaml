@@ -1,9 +1,11 @@
+#持续集成UI自动化测试脚本
 - name: '检测流程'
   steps:
     - page: 'V_LoginPage'
       actions:
-        # - method: 'check_and_handle_popups'
-        #   params: 3
+        - method: 'open_app'
+        - method: 'check_and_handle_popups'
+          params: 3
         - method: 'login'
           params: ['lxr55', 'Test123#']
     - page: 'V_HomePage'

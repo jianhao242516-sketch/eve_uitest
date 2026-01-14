@@ -1,8 +1,10 @@
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 import yaml
 import os
+import time
 
 # 所有页面类都继承自 BasePage，负责提供：
 # 元素定位封装（find, click, send_keys）
@@ -15,6 +17,7 @@ class BasePage:
     def __init__(self, driver):
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
+        self.current_context = None  # 记录当前 context
         self._load_elements()
         self._load_popups()
     
@@ -364,7 +367,7 @@ class BasePage:
     def screenshot(self, name=None, timestamp=True):
         """截图方法
         
-        目录结构: screenshots/run_{运行时间戳}/times_{执行次数}/case_{用例序号}/
+        目录结构: screenshots/{设备名}/run_{运行时间戳}/times_{执行次数}/case_{用例序号}/
         
         Args:
             name: 截图文件名，如果不指定则自动生成
@@ -379,12 +382,14 @@ class BasePage:
         base_screenshot_dir = os.path.join(base_dir, 'screenshots')
         
         # 获取运行信息（从环境变量或默认值）
+        device_name = os.environ.get('DEVICE_NAME', 'DEV')
         run_start_timestamp = os.environ.get('RUN_START_TIMESTAMP', datetime.now().strftime("%Y%m%d_%H%M%S"))
         run_number = os.environ.get('CURRENT_RUN_NUMBER', '1')
         case_index = os.environ.get('CURRENT_CASE_INDEX', '1')
         
-        # 构建目录结构: screenshots/run_{时间戳}/times_{次数}/case_{用例序号}/
-        run_dir = os.path.join(base_screenshot_dir, f"run_{run_start_timestamp}")
+        # 构建目录结构: screenshots/{设备名}/run_{时间戳}/times_{次数}/case_{用例序号}/
+        device_dir = os.path.join(base_screenshot_dir, device_name)
+        run_dir = os.path.join(device_dir, f"run_{run_start_timestamp}")
         times_dir = os.path.join(run_dir, f"times_{run_number}")
         case_dir = os.path.join(times_dir, f"case_{case_index}")
         
@@ -666,6 +671,166 @@ class BasePage:
             error_msg = message or f"文本不包含: 期望包含'{expected_text}', 实际'{actual_text}'"
             raise AssertionError(error_msg)
         return True
+
+    def switch_to_h5_context(self, timeout=10):
+        """切换到 H5 WebView context
+        
+        Args:
+            timeout: 等待 WebView context 出现的超时时间（秒），默认10秒
+            
+        Returns:
+            bool: 切换是否成功
+        """
+        try:
+            print("🔄 正在切换到 H5 WebView context...")
+            
+            # 等待 WebView context 出现
+            start_time = time.time()
+            while time.time() - start_time < timeout:
+                contexts = self.driver.contexts
+                print(f"📋 当前可用 contexts: {contexts}")
+                
+                # 查找 WebView context（通常包含 "WEBVIEW" 关键字）
+                webview_context = None
+                for context in contexts:
+                    if 'WEBVIEW' in context.upper():
+                        webview_context = context
+                        break
+                
+                if webview_context:
+                    self.driver.switch_to.context(webview_context)
+                    self.current_context = webview_context
+                    print(f"✅ 已切换到 H5 context: {webview_context}")
+                    time.sleep(1)  # 等待 context 切换完成
+                    return True
+                
+                time.sleep(0.5)  # 每0.5秒检查一次
+            
+            print(f"❌ 在 {timeout} 秒内未找到 WebView context")
+            return False
+            
+        except Exception as e:
+            print(f"❌ 切换 H5 context 失败: {e}")
+            return False
+    
+    def switch_to_native_context(self):
+        """切换回原生 NATIVE_APP context
+        
+        Returns:
+            bool: 切换是否成功
+        """
+        try:
+            print("🔄 正在切换回原生 NATIVE_APP context...")
+            self.driver.switch_to.context('NATIVE_APP')
+            self.current_context = 'NATIVE_APP'
+            print("✅ 已切换回原生 context")
+            time.sleep(0.5)  # 等待 context 切换完成
+            return True
+        except Exception as e:
+            print(f"❌ 切换原生 context 失败: {e}")
+            return False
+    
+    def click_h5_element(self, by, locator, timeout=10):
+        """在 H5 context 中点击元素
+        
+        Args:
+            by: 定位方式（By.CSS_SELECTOR, By.XPATH, By.ID 等，用于 HTML 元素）
+                或 AppiumBy.XPATH（用于 WebView 中的原生元素）
+            locator: 定位器字符串
+            timeout: 等待元素出现的超时时间（秒），默认10秒
+            
+        Returns:
+            bool: 点击是否成功
+        """
+        try:
+            # 确保在 H5 context 中
+            if self.current_context is None or 'WEBVIEW' not in self.current_context.upper():
+                if not self.switch_to_h5_context(timeout=timeout):
+                    print("❌ 无法切换到 H5 context，无法点击元素")
+                    return False
+            
+            print(f"🖱️ 在 H5 context 中点击元素: {by}={locator}")
+            
+            # 等待元素出现并点击
+            wait = WebDriverWait(self.driver, timeout)
+            element = wait.until(EC.presence_of_element_located((by, locator)))
+            element = wait.until(EC.element_to_be_clickable((by, locator)))
+            element.click()
+            
+            print(f"✅ 已点击 H5 元素: {locator}")
+            return True
+            
+        except Exception as e:
+            print(f"❌ 点击 H5 元素失败: {e}")
+            return False
+    
+    def click_h5_element_by_xpath(self, xpath, timeout=10, use_native_locator=True):
+        """通过 XPath 在 H5 context 中点击元素（便捷方法）
+        
+        Args:
+            xpath: XPath 字符串
+            timeout: 等待元素出现的超时时间（秒），默认10秒
+            use_native_locator: 是否使用原生定位方式（AppiumBy.XPATH），
+                               如果为 True，适用于 WebView 中的原生元素（如 XCUIElementTypeOther）
+                               如果为 False，使用 HTML 定位方式（By.XPATH），适用于真正的 HTML 元素
+                                
+        Returns:
+            bool: 点击是否成功
+        """
+        if use_native_locator:
+            # 使用原生定位方式（适用于 WebView 中的原生元素）
+            return self.click_h5_element(AppiumBy.XPATH, xpath, timeout)
+        else:
+            # 使用 HTML 定位方式（适用于真正的 HTML 元素）
+            return self.click_h5_element(By.XPATH, xpath, timeout)
+    def close_app(self, bundle_id=None):
+        """关闭app
+        
+        Args:
+            bundle_id: app的bundleId或appPackage，如果不提供则从环境变量获取
+        """
+        import time
+        try:
+            # 如果没有提供bundle_id，从环境变量获取
+            if bundle_id is None:
+                bundle_id = os.environ.get('CURRENT_BUNDLE_ID')
+                if not bundle_id:
+                    print("❌ 未提供bundle_id且环境变量中也没有，无法关闭app")
+                    return False
+            
+            print(f"🔒 正在关闭app: {bundle_id}")
+            self.driver.terminate_app(bundle_id)
+            print(f"✅ App已关闭")
+            time.sleep(1)  # 等待关闭完成
+            return True
+        except Exception as e:
+            print(f"❌ 关闭app失败: {e}")
+            return False
+
+    def open_app(self, bundle_id=None):
+        """打开app
+        
+        Args:
+            bundle_id: app的bundleId或appPackage，如果不提供则从环境变量获取
+        """
+        import time
+        try:
+            # 如果没有提供bundle_id，从环境变量获取
+            if bundle_id is None:
+                bundle_id = os.environ.get('CURRENT_BUNDLE_ID')
+                if not bundle_id:
+                    print("❌ 未提供bundle_id且环境变量中也没有，无法打开app")
+                    return False
+            
+            print(f"🚀 正在打开app: {bundle_id}")
+            self.driver.execute_script("mobile: launchApp", {"bundleId": bundle_id})
+            print(f"✅ App已打开")
+            time.sleep(2)  # 等待app启动
+            return True
+        except Exception as e:
+            print(f"❌ 打开app失败: {e}")
+            return False
+  
 
 def initialize_app(driver):
     """

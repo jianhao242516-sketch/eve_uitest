@@ -70,7 +70,11 @@ class V_HomePage(BasePage):
             self.check_and_handle_popups(3)
         
         #判断是否连接成功
-        if self.is_element_present_by_name('connected_button', timeout=10):
+        found = self.wait_for_element_to_appear('connected_button', timeout=10) \
+            or self.is_element_present_by_name('connected_button', timeout=10) \
+            or self.is_element_present_by_name('connected_button_1', timeout=10) \
+            or self.is_element_present_by_name('connected_button_2', timeout=10)
+        if found:
             print("✅ 连接成功")
         else:
             print("❌ 连接失败")
@@ -91,7 +95,8 @@ class V_HomePage(BasePage):
         # 优先显式等待一段时间，避免刚进入页面状态尚未稳定
         found = self.wait_for_element_to_appear('connected_button', timeout=3) \
             or self.is_element_present_by_name('connected_button', timeout=3) \
-            or self.is_element_present_by_name('connected_button_1', timeout=3)
+            or self.is_element_present_by_name('connected_button_1', timeout=3) \
+            or self.is_element_present_by_name('connected_button_2', timeout=3)
         if found:
             print("✅ 已连接")
         else:

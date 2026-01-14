@@ -8,6 +8,7 @@ M_HomePage:
   connect_wlj: ['xpath', "//XCUIElementTypeStaticText[@name='未连接']"]
   connected_button: ['xpath', "//XCUIElementTypeStaticText[@name='连接良好']"]
   connected_button_1: ['xpath', "//XCUIElementTypeStaticText[@name='已连接']"]
+  connected_button_2: ['xpath', "//XCUIElementTypeStaticText[@name='网络较差']"]
   connect_next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
   connect_password_input: ['xpath', "//XCUIElementTypeStaticText[@name='请输入Wi-Fi密码']"]
   connect_password_button: ['xpath', "//XCUIElementTypeButton[@name='连接']"]

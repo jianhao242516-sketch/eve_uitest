@@ -91,7 +91,7 @@ def get_device_name(udid):
 
 def send_feishu_notification(status, task_id, test_file, device_name, bundle_id, 
                              passed=0, failed=0, total=0, success_rate=0, error_msg=None, 
-                             webhook_url=None):
+                             webhook_url=None, build_number=None):
     """
     发送飞书通知
     
@@ -107,10 +107,12 @@ def send_feishu_notification(status, task_id, test_file, device_name, bundle_id,
         success_rate: 成功率（仅 completed 状态）
         error_msg: 错误信息（仅 failed 状态）
         webhook_url: 飞书 webhook URL，如果为 None 则从环境变量获取
+        build_number: 构建号（可选）
     """
     if not NOTIFICATION_AVAILABLE:
         return
-    webhook_url = "https://open.feishu.cn/open-apis/bot/v2/hook/1256e800-a592-4c2e-841d-fd3db6128b56"
+    webhook_url = "https://open.feishu.cn/open-apis/bot/v2/hook/e2d29e9b-0923-4d99-a90e-322572ca83dc"
+    # webhook_url = "https://open.feishu.cn/open-apis/bot/v2/hook/1256e800-a592-4c2e-841d-fd3db6128b56"
     # 从环境变量获取 webhook_url（如果未提供）
     if webhook_url is None:
         webhook_url = os.getenv('FEISHU_WEBHOOK_URL')
@@ -123,40 +125,83 @@ def send_feishu_notification(status, task_id, test_file, device_name, bundle_id,
     try:
         sender = NotificationSender()
         
-        # 根据状态构建消息
+        # 0113新增：根据状态构建消息，失败时显示详细错误信息到飞书
+        # 0114新增：添加build信息
+        build_info = f"\nBuild: {build_number}" if build_number else ""
+        
         if status == 'completed':
-            title = "✅ UI测试任务执行完成"
-            content = f"""任务ID: {task_id}
+            # 判断是否全部通过
+            if failed == 0:
+                title = "✅ UI测试任务执行成功"
+                content = f"""任务ID: {task_id}
 测试文件: {test_file}
 设备: {device_name}
-Bundle ID: {bundle_id}
+Bundle ID: {bundle_id}{build_info}
+执行结果: 全部通过
+通过: {passed}
 总计: {total}"""
+            else:
+                title = "⚠️ UI测试任务执行完成（有失败）"
+                # 0113新增：格式化错误信息，显示失败用例和断言错误详情
+                error_details = ""
+                if error_msg:
+                    # error_msg 可能是字符串或列表
+                    if isinstance(error_msg, list):
+                        for case_error in error_msg:
+                            case_name = case_error.get('case_name', '未知用例')
+                            errors = case_error.get('errors', [])
+                            error_details += f"\n用例: {case_name}\n"
+                            for err in errors:
+                                error_details += f"  - {err}\n"
+                    else:
+                        error_details = f"\n错误信息: {error_msg}"
+                
+                content = f"""任务ID: {task_id}
+测试文件: {test_file}
+设备: {device_name}
+Bundle ID: {bundle_id}{build_info}
+执行结果: 部分失败
+通过: {passed}
+失败: {failed}
+总计: {total}{error_details}"""
         elif status == 'failed':
             title = "❌ 测试任务执行失败"
+            # 0113新增：格式化错误信息，显示失败用例和断言错误详情
+            error_details = ""
+            if error_msg:
+                if isinstance(error_msg, list):
+                    for case_error in error_msg:
+                        case_name = case_error.get('case_name', '未知用例')
+                        errors = case_error.get('errors', [])
+                        error_details += f"\n用例: {case_name}\n"
+                        for err in errors:
+                            error_details += f"  - {err}\n"
+                else:
+                    error_details = f"\n错误信息: {error_msg}"
+            
             content = f"""任务ID: {task_id}
 测试文件: {test_file}
 设备: {device_name}
-Bundle ID: {bundle_id}
-错误信息: {error_msg or '未知错误'}"""
+Bundle ID: {bundle_id}{build_info}{error_details if error_details else '\n错误信息: 未知错误'}"""
         elif status == 'cancelled':
             title = "⚠️ 测试任务已取消"
             content = f"""任务ID: {task_id}
 测试文件: {test_file}
 设备: {device_name}
-Bundle ID: {bundle_id}"""
+Bundle ID: {bundle_id}{build_info}"""
         elif status == 'timeout':
             title = "⏱️ 测试任务查询超时"
             content = f"""任务ID: {task_id}
 测试文件: {test_file}
 设备: {device_name}
-Bundle ID: {bundle_id}
+Bundle ID: {bundle_id}{build_info}
 注意: 任务状态查询超时，请手动检查任务状态"""
         else:
             title = f"ℹ️ 测试任务状态更新: {status}"
             content = f"""任务ID: {task_id}
 测试文件: {test_file}
 设备: {device_name}
-Bundle ID: {bundle_id}"""
+Bundle ID: {bundle_id}{build_info}"""
         
         sender.send_text_to_feishu(title, content, webhook_url)
         print(f"✓ 飞书通知已发送: {title}")
@@ -266,6 +311,7 @@ def run_test(app_uid_or_shortcut, device=None, test_file="tests/test_api_V.yaml"
     bundle_id = download_result['bundle_id']
     download_dir = download_result['download_dir']
     files = download_result['files']
+    build_number = download_result.get('build_number')  # 0114新增：获取build号
     
     if not files:
         print("未找到下载的文件")
@@ -435,9 +481,17 @@ def run_test(app_uid_or_shortcut, device=None, test_file="tests/test_api_V.yaml"
                                 failed = result.get('failed', 0)
                                 total = result.get('total', 0)
                                 success_rate = result.get('success_rate', 0)
+                                error_messages = result.get('error_messages', [])
                                 print(f"\n✓ 任务执行完成")
-                                print(f"  失败: {failed}, 总计: {total}")
-                                # 发送飞书通知
+                                print(f"  通过: {passed}, 失败: {failed}, 总计: {total}")
+                                if error_messages:
+                                    print(f"  失败用例数: {len(error_messages)}")
+                                    for case_error in error_messages:
+                                        case_name = case_error.get('case_name', '未知用例')
+                                        errors = case_error.get('errors', [])
+                                        print(f"    - {case_name}: {len(errors)} 个错误")
+                                # 0113新增：发送飞书通知，包含错误信息
+                                # 0114新增：添加build信息
                                 send_feishu_notification(
                                     status='completed',
                                     task_id=task_id,
@@ -448,7 +502,9 @@ def run_test(app_uid_or_shortcut, device=None, test_file="tests/test_api_V.yaml"
                                     failed=failed,
                                     total=total,
                                     success_rate=success_rate,
-                                    webhook_url=feishu_webhook_url
+                                    error_msg=error_messages if error_messages else None,
+                                    webhook_url=feishu_webhook_url,
+                                    build_number=build_number
                                 )
                                 # 测试完成后清理下载的文件
                                 if test_request_sent:
@@ -465,7 +521,8 @@ def run_test(app_uid_or_shortcut, device=None, test_file="tests/test_api_V.yaml"
                                     device_name=device_name or dev_name,
                                     bundle_id=bundle_id,
                                     error_msg=error_msg,
-                                    webhook_url=feishu_webhook_url
+                                    webhook_url=feishu_webhook_url,
+                                    build_number=build_number
                                 )
                                 # 测试失败后也清理下载的文件
                                 if test_request_sent:
@@ -480,7 +537,8 @@ def run_test(app_uid_or_shortcut, device=None, test_file="tests/test_api_V.yaml"
                                     test_file=test_file,
                                     device_name=device_name or dev_name,
                                     bundle_id=bundle_id,
-                                    webhook_url=feishu_webhook_url
+                                    webhook_url=feishu_webhook_url,
+                                    build_number=build_number
                                 )
                                 # 任务取消后也清理下载的文件
                                 if test_request_sent:
@@ -499,7 +557,8 @@ def run_test(app_uid_or_shortcut, device=None, test_file="tests/test_api_V.yaml"
                                 test_file=test_file,
                                 device_name=device_name or dev_name,
                                 bundle_id=bundle_id,
-                                webhook_url=feishu_webhook_url
+                                webhook_url=feishu_webhook_url,
+                                build_number=build_number
                             )
                             # 超时后也清理下载的文件
                             if test_request_sent:
@@ -578,7 +637,17 @@ def main():
             'app_uid_or_shortcut': 'v',  # APP_UID 或简写 (m 或 v)
             'device': "iPad7",  # 设备名，None 则自动获取
             'test_file': 'tests/test_ui_flow.yaml',  # 测试文件路径
-            'device_name': 'V_500348',  # 设备sn
+            'device_name': 'evetest 1',  # 设备sn
+            'appium_host': '127.0.0.1',  # Appium 服务器地址
+            'reinstall': True,  # 是否重新安装应用
+            'dry_run': False,  # 是否仅输出请求信息，不执行
+            'feishu_webhook_url': None,  # 飞书 webhook URL，None 则从环境变量获取
+        },
+        {
+            'app_uid_or_shortcut': 'v',  # APP_UID 或简写 (m 或 v)
+            'device': "iPad7",  # 设备名，None 则自动获取
+            'test_file': 'tests/test_api_V.yaml',  # 测试文件路径
+            'device_name': 'evetest 1',  # 设备sn
             'appium_host': '127.0.0.1',  # Appium 服务器地址
             'reinstall': True,  # 是否重新安装应用
             'dry_run': False,  # 是否仅输出请求信息，不执行
@@ -589,20 +658,29 @@ def main():
             'app_uid_or_shortcut': 'm',  # M 版本
             'device': "iPad7",
             'test_file': 'tests/test_ui_flow_m.yaml',
-            'device_name': 'M_s300003',  # 不同的设备SN
+            'device_name': 'ruby 1',  # 不同的设备SN
             'appium_host': '127.0.0.1',
             'reinstall': True,
             'dry_run': False,
         },
-        # {
-        #     'app_uid_or_shortcut': 'v',  # V 版本
-        #     'device': None,
-        #     'test_file': 'tests/test_api_V.yaml',  # 不同的测试文件
-        #     'device_name': 'V_500350',  # 另一个设备SN
-        #     'appium_host': '127.0.0.1',
-        #     'reinstall': False,  # 不重新安装
-        #     'dry_run': False,
-        # },
+        {
+            'app_uid_or_shortcut': 'm',  # M 版本
+            'device': "iPad7",
+            'test_file': 'tests/test_api_M.yaml',
+            'device_name': 'ruby 1',  # 不同的设备SN
+            'appium_host': '127.0.0.1',
+            'reinstall': True,
+            'dry_run': False,
+        },
+        {
+            'app_uid_or_shortcut': 'lp',
+            'device': 'iPad7',
+            'test_file': 'tests/laprairie/test_press_flow.yaml', 
+            'device_name': 'evetest 1', 
+            'appium_host': '127.0.0.1',
+            'reinstall': True,  
+            'dry_run': False,
+        },
     ]
     
     # 统计信息

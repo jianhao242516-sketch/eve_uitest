@@ -33,13 +33,15 @@ APP_UID = "ddvdg4xmk9ibn5skh6zxpw882i"
 # APP_UID 简写映射
 APP_UID_SHORTCUT_MAP = {
     "m": "d5immxtv3bj2p37d3bcvrx5f2e",
-    "v": "ddvdg4xmk9ibn5skh6zxpw882i"
+    "v": "ddvdg4xmk9ibn5skh6zxpw882i",
+    "lp": "dwjuz388f8iacmzhgutz6benz4"
 }
 
 # Bundle ID 映射
 BUNDLE_ID_MAP = {
     "d5immxtv3bj2p37d3bcvrx5f2e": "com.evelabinsight.MTEveEnterprise",
-    "ddvdg4xmk9ibn5skh6zxpw882i": "com.evelabinsight.MTKingEnterprise"
+    "ddvdg4xmk9ibn5skh6zxpw882i": "com.evelabinsight.MTKingEnterprise",
+    "dwjuz388f8iacmzhgutz6benz4": "com.evelabinsight.EveLaPrairieEnterprise"
 }
 
 def get_bundle_id(app_uid):
@@ -530,10 +532,11 @@ def get_build_artifacts(app_uid, build_uid_or_number):
         return None
 
 def is_test_enterprise_package(build, artifact):
-    """判断是否是测试环境企业包
+    """判断是否是测试环境企业包（海外包）
     检查条件：
     1. 文件是 .ipa 格式
-    2. 构建平台的配置名称包含"测试"和"企业"
+    2. 构建平台的配置名称是"海外包"（排除"国内包"）
+    3. artifact 的 variant 必须包含"测试"和"企业"
     """
     # 检查文件是否是 .ipa
     if 'file' not in artifact or not artifact['file']:
@@ -543,19 +546,28 @@ def is_test_enterprise_package(build, artifact):
     if not file_name.lower().endswith('.ipa'):
         return False
     
-    # 检查构建平台的配置名称
+    # 检查构建平台的配置名称，排除"国内包"
     if 'buildPlatform' in build and build['buildPlatform']:
         config_name = build['buildPlatform'].get('configName', '')
-        # 检查是否同时包含"测试"和"企业"
-        if '测试' in config_name and '企业' in config_name:
-            return True
+        
+        # 首先排除"国内包"
+        if '国内' in config_name:
+            return False
+        
+        # 配置名称必须是"海外包"（或包含"海外"）
+        if '海外' not in config_name:
+            return False
     
-    # 也可以检查 variant 或其他字段
+    # 检查 artifact 的 variant 是否包含"测试"和"企业"
     variant = artifact.get('variant', '')
-    if '测试' in variant and '企业' in variant:
-        return True
+    if not ('测试' in variant and '企业' in variant):
+        return False
     
-    return False
+    # 排除 variant 中包含"国内"的情况
+    if '国内' in variant:
+        return False
+    
+    return True
 
 def download_file(file_url, save_path):
     """下载文件"""
@@ -581,7 +593,7 @@ def download_file(file_url, save_path):
                     downloaded += len(chunk)
                     if total_size > 0:
                         percent = (downloaded / total_size) * 100
-                        # print(f"\r下载进度: {percent:.1f}% ({downloaded}/{total_size} bytes)", end='', flush=True)
+                        print(f"\r下载进度: {percent:.1f}% ({downloaded}/{total_size} bytes)", end='', flush=True)
         
         print(f"\n文件下载完成: {save_path}")
         return True
@@ -693,8 +705,13 @@ def download_test_enterprise_package(app_uid_or_shortcut):
             # 筛选出测试环境企业包
             test_enterprise_artifacts = []
             for artifact in artifacts:
+                variant = artifact.get('variant', 'N/A')
+                file_name = artifact.get('file', {}).get('name', 'N/A') if artifact.get('file') else 'N/A'
                 if is_test_enterprise_package(build, artifact):
+                    print(f"  ✓ 接受: {file_name} (variant: {variant})")
                     test_enterprise_artifacts.append(artifact)
+                else:
+                    print(f"  ✗ 跳过: {file_name} (variant: {variant})")
             
             if test_enterprise_artifacts:
                 print(f"  ✓ 找到 {len(test_enterprise_artifacts)} 个测试环境企业包！")
@@ -794,7 +811,7 @@ def download_test_enterprise_package(app_uid_or_shortcut):
 
 def main():
     """主函数，使用默认 APP_UID"""
-    result = download_test_enterprise_package("m")
+    result = download_test_enterprise_package("lp")
     if result['success']:
         print(f"\n成功下载到: {result['download_dir']}")
         print(f"Bundle ID: {result['bundle_id']}")

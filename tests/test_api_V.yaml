@@ -4,6 +4,7 @@
   steps:
     - page: 'V_LoginPage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'login'
@@ -43,6 +44,7 @@
   steps:
     - page: 'V_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'searchuser'
@@ -73,6 +75,7 @@
   steps:
     - page: 'V_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'searchuser'
@@ -104,6 +107,7 @@
   steps:
     - page: 'V_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'screenshot'
@@ -130,6 +134,7 @@
   steps:
     - page: 'V_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'searchuser'
@@ -161,6 +166,7 @@
   steps:
     - page: 'V_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'searchuser'
@@ -193,6 +199,7 @@
   steps:
     - page: 'V_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'screenshot'
@@ -208,6 +215,7 @@
   steps:
     - page: 'V_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'screenshot'
@@ -240,6 +248,7 @@
   steps:
     - page: 'V_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'screenshot'

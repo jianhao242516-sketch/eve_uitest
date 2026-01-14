@@ -9,6 +9,7 @@
     #       params: ['lxr55', 'Test123#']
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'screenshot'
@@ -42,6 +43,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'wait'
           params: 2
         - method: 'click_element'
@@ -81,6 +83,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_connected'
         - method: 'screenshot'
           params: 'before_kill'

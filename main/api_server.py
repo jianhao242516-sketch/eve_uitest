@@ -142,11 +142,36 @@ def execute_test_with_download(task_id, device_info, bundle_id, test_file, app_p
             is_remote_appium = True
     
     # 如果需要自动下载
-    if app_shortcut and app_path in ['auto_v', 'auto_m']:
+    if app_shortcut and app_path in ['auto_v', 'auto_m', 'auto_lp']:
         # 检查下载功能是否可用
         if not DOWNLOAD_AVAILABLE:
             error_msg = '自动下载功能不可用: 下载模块导入失败'
             logger.log(f"❌ {error_msg}")
+            with tasks_lock:
+                tasks[task_id]['status'] = 'failed'
+                tasks[task_id]['end_time'] = datetime.now().isoformat()
+                tasks[task_id]['error'] = error_msg
+            save_tasks()
+            return
+        
+        # 在分布式部署中，提前检查并提示：auto_v/auto_m/auto_lp 无法在远程 Appium 机器上使用
+        if is_remote_appium:
+            appium_host_display = appium_host or (device_info.get('appium_server', '') if device_info else '')
+            error_msg = (
+                f'❌ 分布式部署限制: 自动下载功能（{app_path}）无法在远程 Appium 机器上使用。\n'
+                f'当前 Appium 主机: {appium_host_display}\n'
+                f'\n'
+                f'原因: 文件会下载到服务器端，但 Appium 在远程机器上无法访问。\n'
+                f'\n'
+                f'解决方案:\n'
+                f'1. 【推荐】在 Appium 机器（{appium_host_display}）上手动下载并指定绝对路径\n'
+                f'   - 在 Appium 机器上运行下载脚本获取文件路径\n'
+                f'   - 使用该绝对路径作为 app 参数，而不是 {app_path}\n'
+                f'2. 使用共享存储（NFS/SMB），让服务器和 Appium 机器都能访问同一路径\n'
+                f'3. 配置 SSH 自动传输（需要额外开发）\n'
+                f'4. 将 Appium 部署到本地（127.0.0.1），这样可以使用 {app_path}'
+            )
+            logger.log(error_msg)
             with tasks_lock:
                 tasks[task_id]['status'] = 'failed'
                 tasks[task_id]['end_time'] = datetime.now().isoformat()
@@ -209,25 +234,6 @@ def execute_test_with_download(task_id, device_info, bundle_id, test_file, app_p
             logger.log(f"📦 下载目录: {download_result.get('download_dir')}")
             logger.log(f"📱 Bundle ID: {download_result.get('bundle_id')}")
             logger.log(f"🔢 构建号: {download_result.get('build_number')}")
-            
-            # 检查分布式部署问题：如果 Appium 在远程机器，下载的文件在服务器端，Appium 无法访问
-            if is_remote_appium:
-                error_msg = (
-                    f'分布式部署限制: 文件已下载到服务器端 ({app_path})，但 Appium 在远程机器上无法访问此文件。\n'
-                    f'解决方案:\n'
-                    f'1. 将文件传输到 Appium 机器: scp {app_path} user@{appium_host}:/path/to/app/\n'
-                    f'2. 使用共享存储（NFS/SMB）\n'
-                    f'3. 在 Appium 机器上也配置自动下载功能\n'
-                    f'4. 使用 Appium 机器上的绝对路径，而不是 auto_v/auto_m'
-                )
-                logger.log(f"❌ {error_msg}")
-                with tasks_lock:
-                    tasks[task_id]['status'] = 'failed'
-                    tasks[task_id]['end_time'] = datetime.now().isoformat()
-                    tasks[task_id]['error'] = error_msg
-                    tasks[task_id]['app_path'] = app_path  # 保存下载路径供参考
-                save_tasks()
-                return
             
             # 更新任务中的 app_path，并保存下载信息用于后续清理
             with tasks_lock:
@@ -297,6 +303,7 @@ def execute_test(task_id, device_info, bundle_id, test_file, app_path, reinstall
         # 执行多次测试
         total_passed = 0
         total_failed = 0
+        all_error_messages = []  # 0113新增：收集所有执行中的错误信息，用于飞书通知
         
         for run_number in range(1, times + 1):
             # 检查任务是否被取消
@@ -357,6 +364,9 @@ def execute_test(task_id, device_info, bundle_id, test_file, app_path, reinstall
                                 # 累加本次执行的结果
                                 total_passed += result.get('passed', 0)
                                 total_failed += result.get('failed', 0)
+                                # 0113新增：收集错误信息，用于飞书通知
+                                if 'error_messages' in result and result['error_messages']:
+                                    all_error_messages.extend(result['error_messages'])
                                 logger.log(f"第 {run_number}/{times} 次执行结果: 通过={result.get('passed', 0)}, 失败={result.get('failed', 0)}")
                 except Exception as e:
                     logger.log(f"读取结果文件失败: {e}")
@@ -423,7 +433,8 @@ def execute_test(task_id, device_info, bundle_id, test_file, app_path, reinstall
                 'failed': total_failed,
                 'total': total_passed + total_failed,
                 'success_rate': (total_passed / (total_passed + total_failed) * 100) if (total_passed + total_failed) > 0 else 0,
-                'times': times
+                'times': times,
+                'error_messages': all_error_messages  # 0113新增：保存所有错误信息，用于飞书通知
             }
             tasks[task_id]['screenshot_dir'] = f'screenshots/run_{run_timestamp}/'
             
@@ -585,9 +596,9 @@ def run_test():
         
         # 处理 app_path：
         # 2026.01.06新增:服务器连接的iPad可自动下载最新包
-        # 支持自动下载：如果 app_path 是 "auto_v" 或 "auto_m"，将在后台线程中自动下载最新包
+        # 支持自动下载：如果 app_path 是 "auto_v" 或 "auto_m" 或 "auto_lp"，将在后台线程中自动下载最新包
         app_shortcut = None
-        if app_path in ['auto_v', 'auto_m']:
+        if app_path in ['auto_v', 'auto_m', 'auto_lp']:
             # 检查下载功能是否可用
             if not DOWNLOAD_AVAILABLE:
                 return jsonify({
@@ -605,13 +616,13 @@ def run_test():
             
             # 提取简写（v 或 m），将在后台线程中下载
             app_shortcut = app_path.replace('auto_', '')
-            # app_path 保持为 'auto_v' 或 'auto_m'，在后台线程中会被替换为实际下载路径
+            # app_path 保持为 'auto_v' 或 'auto_m' 或 'auto_lp'，在后台线程中会被替换为实际下载路径
         
         # 处理 app_path：
         # 在分布式部署中（appium_host 是远程 IP），app_path 必须是 Appium 机器上的绝对路径
         # 在本地部署中（appium_host 是 127.0.0.1），相对路径可以转换为服务器路径
-        # 注意：如果是 auto_v 或 auto_m，跳过路径检查，因为下载会在后台线程中进行
-        if app_path and app_path not in ['auto_v', 'auto_m']:
+        # 注意：如果是 auto_v 或 auto_m 或 auto_lp，跳过路径检查，因为下载会在后台线程中进行
+        if app_path and app_path not in ['auto_v', 'auto_m', 'auto_lp']:
             if os.path.isabs(app_path):
                 # 绝对路径，直接使用（应该是 Appium 所在机器的路径）
                 pass

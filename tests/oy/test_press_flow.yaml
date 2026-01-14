@@ -96,6 +96,7 @@
   steps:
     - page: 'oyPage'
       actions:
+        - method: 'open_app'
         - method: 'click_element'
           params: 'start_detect_button'
         - method: 'wait'

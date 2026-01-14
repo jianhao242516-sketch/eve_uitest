@@ -64,7 +64,12 @@ class M_HomePage(BasePage):
         print("点击空白处，防止eve king关机引导")
         self.click_by_coordinates(100, 100)
         #判断是否连接成功
-        if self.is_element_present_by_name('connect_disconnect_button'):
+        found = self.wait_for_element_to_appear('connected_button', timeout=10) \
+            or self.is_element_present_by_name('connected_button', timeout=10) \
+            or self.is_element_present_by_name('connected_button_1', timeout=10) \
+            or self.is_element_present_by_name('connected_button_2', timeout=10) \
+            or self.is_element_present_by_name('connect_disconnect_button', timeout=10)
+        if found:
             print("✅ 连接成功")
         else:
             print("❌ 连接失败")
@@ -73,6 +78,8 @@ class M_HomePage(BasePage):
 
     def searchuser(self,user_name):
         """搜索用户"""
+        #防止软关机浮窗遮挡，点击空白处
+        self.click_by_coordinates(100, 100)
         self.send_keys_element('searchuser', user_name)
         self.click_element('searchresult1')
         #判断是否搜索成功
@@ -84,10 +91,12 @@ class M_HomePage(BasePage):
         # 优先显式等待一段时间，避免刚进入页面状态尚未稳定
         found = self.wait_for_element_to_appear('connected_button', timeout=3) \
             or self.is_element_present_by_name('connected_button', timeout=3) \
-            or self.is_element_present_by_name('connected_button_1', timeout=3)
+            or self.is_element_present_by_name('connected_button_1', timeout=3)\
+            or self.is_element_present_by_name('connected_button_2', timeout=3)
         if found:
             print("✅ 已连接")
         else:
+            print("❌ 未连接")
             # 兜底：截图并尝试在页面源码里查找关键字，便于定位差异
             try:
                 self.screenshot("connected_check", timestamp=True)

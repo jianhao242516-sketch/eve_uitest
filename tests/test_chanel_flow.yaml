@@ -2,6 +2,7 @@
   steps:
     - page: 'ChanelPage'
       actions:
+        - method: 'open_app'
         - method: 'click_element'
           params: 'newconsultation_button'
         - method: 'wait'
@@ -58,6 +59,7 @@
   steps:
     - page: 'ChanelPage'
       actions:
+        - method: 'open_app'
         - method: 'click_element'
           params: 'newconsultation_button'
         - method: 'wait'

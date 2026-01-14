@@ -13,7 +13,7 @@ from copy import deepcopy
 
 config = {
         'merchant_id': '7056154316203392273',
-        'cookie': "_ga=GA1.1.1378342279.1698819484; _fbp=fb.1.1756286971685.264241572382785875; MUSID=6eb63834ab71dd4e4967d20db767fc84",
+        'cookie': "_ga=GA1.1.1378342279.1698819484; _fbp=fb.1.1756286971685.264241572382785875; MUSID=edaaef973ffc137b2de9a8aba94f7fa8",
         'base_url': 'http://preadmin.eve.meitu.com',
         'default_data': {
         'id': '{merchant_id}',

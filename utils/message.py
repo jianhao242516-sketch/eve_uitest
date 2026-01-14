@@ -1,6 +1,4 @@
 
-#by ruby 2025-03-24
-# 发送企业微信消息
 
 import requests
 from datetime import datetime

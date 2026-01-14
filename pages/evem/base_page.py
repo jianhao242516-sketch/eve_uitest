@@ -407,7 +407,7 @@ class BasePage:
     def screenshot(self, name=None, timestamp=True):
         """截图方法
         
-        目录结构: screenshots/run_{运行时间戳}/times_{执行次数}/case_{用例序号}/
+        目录结构: screenshots/{设备名}/run_{运行时间戳}/times_{执行次数}/case_{用例序号}/
         
         Args:
             name: 截图文件名，如果不指定则自动生成
@@ -422,12 +422,14 @@ class BasePage:
         base_screenshot_dir = os.path.join(base_dir, 'screenshots')
         
         # 获取运行信息（从环境变量或默认值）
+        device_name = os.environ.get('DEVICE_NAME', 'DEV')
         run_start_timestamp = os.environ.get('RUN_START_TIMESTAMP', datetime.now().strftime("%Y%m%d_%H%M%S"))
         run_number = os.environ.get('CURRENT_RUN_NUMBER', '1')
         case_index = os.environ.get('CURRENT_CASE_INDEX', '1')
         
-        # 构建目录结构: screenshots/run_{时间戳}/times_{次数}/case_{用例序号}/
-        run_dir = os.path.join(base_screenshot_dir, f"run_{run_start_timestamp}")
+        # 构建目录结构: screenshots/{设备名}/run_{时间戳}/times_{次数}/case_{用例序号}/
+        device_dir = os.path.join(base_screenshot_dir, device_name)
+        run_dir = os.path.join(device_dir, f"run_{run_start_timestamp}")
         times_dir = os.path.join(run_dir, f"times_{run_number}")
         case_dir = os.path.join(times_dir, f"case_{case_index}")
         

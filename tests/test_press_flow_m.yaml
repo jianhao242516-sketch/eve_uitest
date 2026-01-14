@@ -4,6 +4,7 @@
   steps:
     - page: 'M_HomePage'
       actions:
+        - method: 'open_app'
         - method: 'check_and_handle_popups'
           params: 3
         - method: 'check_connected'

@@ -13,7 +13,7 @@ from copy import deepcopy
 
 config = {
         'merchant_id': '7056154316203392273',
-        'cookie': "_ga=GA1.1.1378342279.1698819484; _fbp=fb.1.1756286971685.264241572382785875; MUSID=edaaef973ffc137b2de9a8aba94f7fa8",
+        'cookie': "_ga=GA1.1.1378342279.1698819484; MUSID=6904559808136e734750356a04091a27",
         'base_url': 'http://preadmin.eve.meitu.com',
         'default_data': {
         'id': '{merchant_id}',
@@ -36,9 +36,9 @@ config = {
         'new_store_business_config[grant_limit_count]': '20', 'new_store_business_config[pro_overdue_rule]': '1',
         'new_store_business_config[pro_overdue_use_single_days]': '3285', 'new_store_business_config[app_type][0]': '2',
         'new_store_business_config[app_type][1]': '1', 'new_store_business_config[report_limit_type]': '1',
-        'new_store_business_config[report_limit_value][1]': '1000',
-        'new_store_business_config[report_limit_value][2]': '5000',
-        'new_store_business_config[report_limit_value][3]': '10000',
+        'new_store_business_config[report_limit_value][1]': '10000',
+        'new_store_business_config[report_limit_value][2]': '50000',
+        'new_store_business_config[report_limit_value][3]': '100000',
         'new_store_business_config[store_login_limit]': '0',
         'new_store_business_config[ba_login_limit]': '0', 'new_store_business_config[ba_gps_limit]': '0',
         'new_store_business_config[user_login_type_eve][0]': '2',  # 注册模式开启为2

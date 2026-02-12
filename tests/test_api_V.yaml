@@ -32,7 +32,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 400]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'
@@ -64,7 +64,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 400]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'
@@ -95,7 +95,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 400]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'
@@ -123,7 +123,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 400]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'
@@ -154,7 +154,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 400]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'
@@ -186,7 +186,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 400]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'
@@ -236,7 +236,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 400]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'
@@ -270,7 +270,7 @@
     - page: 'V_ReportPage'
       actions:
         - method: 'wait_for_element_to_appear'
-          params: ['zhfx', 200]
+          params: ['zhfx', 400]
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'

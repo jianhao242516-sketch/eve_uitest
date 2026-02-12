@@ -137,7 +137,7 @@ def send_feishu_notification(status, task_id, test_file, device_name, bundle_id,
 测试文件: {test_file}
 设备: {device_name}
 Bundle ID: {bundle_id}{build_info}
-执行结果: 全部通过
+执行结果: 
 通过: {passed}
 总计: {total}"""
             else:
@@ -160,7 +160,7 @@ Bundle ID: {bundle_id}{build_info}
 测试文件: {test_file}
 设备: {device_name}
 Bundle ID: {bundle_id}{build_info}
-执行结果: 部分失败
+执行结果: 
 通过: {passed}
 失败: {failed}
 总计: {total}{error_details}"""
@@ -672,15 +672,15 @@ def main():
             'reinstall': True,
             'dry_run': False,
         },
-        {
-            'app_uid_or_shortcut': 'lp',
-            'device': 'iPad7',
-            'test_file': 'tests/laprairie/test_press_flow.yaml', 
-            'device_name': 'evetest 1', 
-            'appium_host': '127.0.0.1',
-            'reinstall': True,  
-            'dry_run': False,
-        },
+        # {
+        #     'app_uid_or_shortcut': 'lp',
+        #     'device': 'iPad7',
+        #     'test_file': 'tests/laprairie/test_press_flow.yaml', 
+        #     'device_name': 'evetest 1', 
+        #     'appium_host': '127.0.0.1',
+        #     'reinstall': True,  
+        #     'dry_run': False,
+        # },
     ]
     
     # 统计信息

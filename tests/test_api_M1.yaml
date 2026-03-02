@@ -1,0 +1,47 @@
+# by ruby
+#2025-12-12
+- name: ' M-通用逻辑'
+  setup_method: 'update_login_qr_code(0)'
+  teardown_method: 'update_login_qr_code(1)'
+  steps:
+    - page: 'M_LoginPage'
+      actions:
+        - method: 'open_app'
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'login'
+          params: ['zjhm002', 'a123456@']
+    - page: 'M_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'check_connected'
+          params: 'M_s300023'
+        - method: 'searchuser'
+          params: 'ruby'
+        - method: 'screenshot'
+    - page: 'M_UserProfilePage'
+      actions:
+        - method: 'click_element'
+          params: 'start_detect_button'
+        - method: 'screenshot'
+          params: 'start_detect_button'
+    - page: 'M_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'detect_success'
+    - page: 'M_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 400]
+        - method: 'swipe_up'
+        - method: 'screenshot'
+          params: 'end'
+        - method: 'click_by_coordinates' #左上角坐标返回
+          params: [20, 45]
+        - method: 'click_by_coordinates' #左上角坐标返回
+          params: [20, 45]
+        - method: 'click_by_coordinates' #左上角坐标返回
+          params: [20, 45]
+        - method: 'close_app'

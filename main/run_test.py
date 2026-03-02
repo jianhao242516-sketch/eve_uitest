@@ -182,7 +182,7 @@ Bundle ID: {bundle_id}{build_info}
             content = f"""任务ID: {task_id}
 测试文件: {test_file}
 设备: {device_name}
-Bundle ID: {bundle_id}{build_info}{error_details if error_details else '\n错误信息: 未知错误'}"""
+Bundle ID: {bundle_id}{build_info}{error_details if error_details else "错误信息: 未知错误"}"""
         elif status == 'cancelled':
             title = "⚠️ 测试任务已取消"
             content = f"""任务ID: {task_id}

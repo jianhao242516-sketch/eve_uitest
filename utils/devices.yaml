@@ -1,33 +1,37 @@
 devices:
-  - name: "iPad25"
-    udid: "00008120-0004086930214032"
-    platformName: "iOS"
-    appium_port: 4723 
-  - name: "iPad (3)"
-    udid: "cf960aa0fc1f5e3c58440c27724021fd4345eb1f" 
-    platformName: "iOS"
-    appium_port: 4724
-  - name: "23M4"
-    udid: "00008132-000C28E63C39001C"
-    platformName: "iOS"
-    appium_port: 4725
-  - name: "ipad1"
-    udid: "00008027-001319961168002E"
-    platformName: "iOS"
-    appium_port: 4726
-  - name: "iPad20"
-    udid: "00008112-00093924228B401E"
-    platformName: "iOS"
-    appium_port: 4727
-  - name: "iPad24"
-    udid: "00008122-000A60303C9A801C"
-    platformName: "iOS"
-    appium_port: 4728
-  - name: "iPad"
-    udid: "00008120-001E158628814032"
-    platformName: "iOS"
-    appium_port: 4729
-  - name: "iPad7"
-    udid: "239533e0da7fd3166f4fe333293a655ee1ce7da0"
-    platformName: "iOS"
-    appium_port: 4730
+#  - name: "iPad25"
+#    udid: "00008120-0004086930214032"
+#    platformName: "iOS"
+#    appium_port: 4723
+#  - name: "iPad (3)"
+#    udid: "cf960aa0fc1f5e3c58440c27724021fd4345eb1f"
+#    platformName: "iOS"
+#    appium_port: 4724
+#  - name: "23M4"
+#    udid: "00008132-000C28E63C39001C"
+#    platformName: "iOS"
+#    appium_port: 4725
+#  - name: "ipad1"
+#    udid: "00008027-001319961168002E"
+#    platformName: "iOS"
+#    appium_port: 4726
+#  - name: "iPad20"
+#    udid: "00008112-00093924228B401E"
+#    platformName: "iOS"
+#    appium_port: 4727
+#  - name: "iPad24"
+#    udid: "00008122-000A60303C9A801C"
+#    platformName: "iOS"
+#    appium_port: 4728
+#  - name: "iPad"
+#    udid: "00008120-001E158628814032"
+#    platformName: "iOS"
+#    appium_port: 4729
+#  - name: "iPad7"
+#    udid: "239533e0da7fd3166f4fe333293a655ee1ce7da0"
+#    platformName: "iOS"
+#    appium_port: 4730
+  - name: "iPad9"
+    platformVersion: "18.3"
+    udid: "00008030-00122C8E3C60C02E"
+    appium_port: 4723 #appium -a 127.0.0.1 -p 4723 --base-path /wd/hub

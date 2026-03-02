@@ -12,79 +12,116 @@ class M_HomePage(BasePage):
 #判断是否勿弹线连
 #连接
 
-    def connect(self,device_name):
-        """连接设备
-        
-        在2分钟内尝试查找设备元素，如果找到就点击，如果找不到就报错
-        
-        Args:
-            device_name: 设备名称
-        """
+    def connect(self, device_name, device_text=None):
+        """连接设备（优化版）"""
         self.click_element('connect_wlj')
         self.check_and_handle_popups(3)
-        # 使用 name 定位元素（类似 Java 的 name == 'name'）
-        device_text = device_name  # 调试先用 ruby 1，后续改为 device_name
-        locator = f"name == '{device_text}'"
-        
-        # 在2分钟内尝试查找元素
-        print(f"🔍 开始查找设备: {device_text}，最多等待2分钟...")
-        try:
-            wait = WebDriverWait(self.driver, 120)  # 2分钟 = 120秒
-            # 使用 name 定位元素
-            element = wait.until(EC.presence_of_element_located((AppiumBy.IOS_PREDICATE, locator)))
-            print(f"✅ 找到设备元素: {device_text}")
-            
-            # 获取元素的位置和大小
-            location = element.location
-            size = element.size
-            print(f"📍 元素位置: x={location['x']}, y={location['y']}, width={size['width']}, height={size['height']}")
-            
-            # 按照 Java 代码的逻辑计算点击位置
-            # Java: driver.clickactionxy(e1.getLocation().x+size, e1.getLocation().y-size*4)
-            # x = 元素 x + 元素高度
-            # y = 元素 y - 元素高度*4
-            click_x = location['x'] + size['height']
-            click_y = location['y'] - size['height'] * 4
-            print(f"📍 点击坐标: ({click_x}, {click_y})")
-            
-            # 点击计算出的位置
-            self.click_by_coordinates(click_x, click_y)
-            print(f"✅ 已点击设备: {device_text}")
-        except Exception as e:
-            error_msg = f"❌ 查找或点击设备元素失败:, 错误: {e}"
-            print(error_msg)
-            print(f"🔍 错误详情: {type(e).__name__}: {str(e)}")
-            raise TimeoutError(error_msg) from e
+
+        # 优化1：扩展设备定位方式（支持XPATH/Predicate/包含匹配）
+        locators = [
+            (AppiumBy.IOS_PREDICATE, f"name == '{device_name}'"),  # 原方式
+            (AppiumBy.IOS_PREDICATE, f"label CONTAINS '{device_name}'"),
+            (AppiumBy.XPATH, f"//*[contains(@name, '{device_name}') or contains(@label, '{device_name}')]"),
+        ]
+
+        # 优化2：延长等待时间（3分钟），并增加重试
+        element = None
+        wait = WebDriverWait(self.driver, 180)  # 3分钟
+        for by, locator in locators:
+            try:
+                print(f"🔍 尝试定位设备 [{device_name}]：{by} = {locator}")
+                element = wait.until(EC.presence_of_element_located((by, locator)))
+                if element:
+                    print(f"✅ 找到设备元素: {device_name}")
+                    break
+            except:
+                continue
+
+        if not element:
+            raise TimeoutError(f"❌ 未找到设备 [{device_name}]，所有定位方式均失败")
+
+        # 优化3：坐标计算容错（防止负数/越界）
+        location = element.location
+        size = element.size
+        click_x = location['x'] + size['height']
+        click_y = location['y'] - size['height'] * 4
+
+        # 确保坐标在屏幕范围内
+        size = self.driver.get_window_size()
+        click_x = max(0, min(click_x, size['width']))
+        click_y = max(0, min(click_y, size['height']))
+
+        print(f"📍 点击坐标: ({click_x}, {click_y})")
+        self.click_by_coordinates(click_x, click_y)
+        print(f"✅ 已点击设备: {device_text}")
+
         self.click_element('connect_next_button')
-        #判断是否需要输入Wi-Fi密码，寻找输入密码的元素
+
+        # 处理Wi-Fi密码
         if self.is_element_present_by_name('connect_password_input'):
             self.send_keys_element('connect_password_input', 'meitutest85389')
             self.click_element('connect_password_button')
             self.check_and_handle_popups(3)
-        print("点击空白处，防止eve king关机引导")
-        self.click_by_coordinates(100, 100)
-        #判断是否连接成功
-        found = self.wait_for_element_to_appear('connected_button', timeout=10) \
-            or self.is_element_present_by_name('connected_button', timeout=10) \
-            or self.is_element_present_by_name('connected_button_1', timeout=10) \
-            or self.is_element_present_by_name('connected_button_2', timeout=10) \
-            or self.is_element_present_by_name('connect_disconnect_button', timeout=10)
+
+        self.click_by_coordinates(100, 100)  # 防止引导浮窗
+
+        # 验证连接状态
+        found = self.wait_for_element_to_appear('connected_button', timeout=20) \
+                or self.is_element_present_by_name('connected_button_1', timeout=10) \
+                or self.is_element_present_by_name('connected_button_2', timeout=10)
+
         if found:
             print("✅ 连接成功")
         else:
             print("❌ 连接失败")
             raise TimeoutError("连接失败")
-        
 
-    def searchuser(self,user_name):
-        """搜索用户"""
-        #防止软关机浮窗遮挡，点击空白处
-        self.click_by_coordinates(100, 100)
-        self.send_keys_element('searchuser', user_name)
-        self.click_element('searchresult1')
-        #判断是否搜索成功
-        if self.is_element_present_by_name('UserProfilePage.start_detect_button'):
-            print("✅ 进入用户资料页成功")
+    def searchuser(self, user_name):
+        """
+        搜索用户，若用户不存在则根据user_name新建用户
+        :param user_name: 要搜索/新建的用户名
+        """
+        try:
+            # 防止软关机浮窗遮挡，点击空白处
+            self.click_by_coordinates(100, 100)
+
+            # 输入用户名进行搜索
+            self.send_keys_element('searchuser', user_name)
+
+            # 先判断第一个搜索结果是否存在
+            if self.is_element_present_by_name('searchresult1'):
+                # 存在则点击进入
+                self.click_element('searchresult1')
+
+                # 判断是否成功进入用户资料页
+                if self.is_element_present_by_name('UserProfilePage.start_detect_button'):
+                    print(f"✅ 搜索到用户【{user_name}】，进入用户资料页成功")
+            else:
+                # 搜索结果不存在，执行新建用户逻辑
+                print(f"❌ 未找到用户【{user_name}】，开始新建用户...")
+
+                # --------------------------
+                # 以下是新建用户的核心逻辑（请根据实际页面元素补充）
+                # --------------------------
+                # 1. 点击"新建用户"按钮（示例元素名，需替换为实际值）
+                self.click_element('create_new_user_btn')
+
+                # 2. 输入要新建的用户名（复用传入的user_name）
+                self.send_keys_element('new_user_name_input', user_name)
+
+                # 3. 点击"确认创建"按钮（示例元素名，需替换为实际值）
+                self.click_element('confirm_create_user_btn')
+
+                # 4. 验证新建是否成功（根据实际页面元素调整判断条件）
+                if self.is_element_present_by_name('UserProfilePage.start_detect_button'):
+                    print(f"✅ 用户【{user_name}】新建成功，并进入用户资料页")
+                else:
+                    print(f"❌ 用户【{user_name}】新建失败")
+
+        except Exception as e:
+            # 捕获异常，避免方法直接崩溃
+            print(f"⚠️ 搜索/新建用户【{user_name}】时出现异常：{str(e)}")
+            raise e  # 可选：抛出异常让上层处理，根据测试框架需求决定
 
     def check_connected(self,device_name):
         """检查是否连接成功"""

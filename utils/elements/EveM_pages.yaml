@@ -48,6 +48,7 @@ M_LoginPage:
 M_ReportPage:
   zhfx: ['xpath', "//XCUIElementTypeStaticText[@name='综合分析']"]
 
+
 M_SettingsPage:
   mdsz_button: ['xpath', "//XCUIElementTypeStaticText[@name='门店设置']"]
   yfzj_button: ['xpath', "//XCUIElementTypeStaticText[@name='宜肤自检']"]
@@ -56,3 +57,5 @@ M_SettingsPage:
   sx_button: ['xpath', "//XCUIElementTypeStaticText[@name='刷新']"]
   sc_success_button: ['xpath', "//XCUIElementTypeStaticText[@name='重新上传']"]
   confirm_button: ['xpath', "//XCUIElementTypeStaticText[@name='确定']"]
+
+

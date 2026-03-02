@@ -3,7 +3,13 @@
 import argparse, yaml, time, multiprocessing as mp
 from main.device_executor import run_case_on_device
 from utils.logger import Logger
+import sys
+import os
 
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+from main.device_executor import run_case_on_device
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bundleId", required=True, help="App 的 bundleId 或 appPackage")
@@ -40,7 +46,7 @@ def main():
                 'udid': device.get('udid'),
                 'platformName': device.get('platformName', 'iOS'),
                 'appium_port': assigned_port,
-                'appium_server': f'http://127.0.0.1:{assigned_port}',
+                'appium_server': f'http://127.0.0.1:{assigned_port}/wd/hub',#增加/wd/hub，否则会报错
             }
             selected_devices.append(device_info)
 
@@ -144,4 +150,18 @@ def main():
         pass
 
 if __name__ == '__main__':
-    main()
+    sys.argv = [
+        sys.argv[0],  # 保留脚本名
+        '--bundleId', 'com.meitu.MTEve',  # M包名
+        '--test', 'tests/test_api_M1.yaml',  # 业务脚本，可多个
+        '--base_port', '4723',  # Appium的port
+        '--device', 'iPad9',  # 设备名称
+
+]
+    main()  # 调用main，自动解析构造的参数
+
+    #########################################################
+    #先运行appium服务：appium server --base-path /wd/hub -p 4723 
+    #再打开xcode
+    #再运行脚本：python3 main/run_ui.py
+    

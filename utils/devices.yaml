@@ -32,6 +32,6 @@ devices:
 #    platformName: "iOS"
 #    appium_port: 4730
   - name: "iPad9"
-    platformVersion: "18.3"
-    udid: "00008030-00122C8E3C60C02E"
+    platformVersion: "15.4.1"
+    udid: "00008030-000C78EC14E0C02E"
     appium_port: 4723 #appium -a 127.0.0.1 -p 4723 --base-path /wd/hub

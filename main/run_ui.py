@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """run_ui.py - Ruby Eve UI Test: 多设备执行（按 devices.yaml 顺序分配端口）"""
-import argparse, yaml, time, multiprocessing as mp
-from main.device_executor import run_case_on_device
-from utils.logger import Logger
 import sys
 import os
 
+# 必须最先：把项目根目录加入搜索路径，否则 main.* 等导入会失败
+PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
+import argparse
+import yaml
+import time
+import multiprocessing as mp
 from main.device_executor import run_case_on_device
+from utils.logger import Logger
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bundleId", required=True, help="App 的 bundleId 或 appPackage")
@@ -152,7 +156,7 @@ def main():
 if __name__ == '__main__':
     sys.argv = [
         sys.argv[0],  # 保留脚本名
-        '--bundleId', 'com.meitu.MTEve',  # M包名
+        '--bundleId', 'com.meitu.MTEveEnterpriseMagic',  # M包名
         '--test', 'tests/test_api_M1.yaml',  # 业务脚本，可多个
         '--base_port', '4723',  # Appium的port
         '--device', 'iPad9',  # 设备名称

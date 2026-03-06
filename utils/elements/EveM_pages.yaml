@@ -17,11 +17,24 @@ M_HomePage:
   mdgl_button: ['xpath', "//XCUIElementTypeStaticText[@name='门店管理']"]
   nm_ksjc_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
   nm_next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
+  newuser_button: ['xpath', "//XCUIElementTypeButton[@name='新客']"]
 # 用户资料页元素
 M_UserProfilePage:
   start_detect_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
   user_avatar: ['xpath', "//XCUIElementTypeImage[@name='头像']"]
   username_label: ['xpath', "//XCUIElementTypeStaticText[@name='用户名']"]
+
+# 新建用户页（新客建档）
+M_NewUserPage:
+  phone_input: ['xpath', "//XCUIElementTypeTextField[@value='请输入电话号码']"]
+  gender_male: ['xpath', "//XCUIElementTypeLink[@name='男']"]
+  gender_female: ['xpath', "//XCUIElementTypeLink[@name='女']"]
+  birthday_select: ['xpath', "//XCUIElementTypeStaticText[@name='请选择出生日期']"]
+  birthday_confirm: ['xpath', "//XCUIElementTypeStaticText[@name='确定']"]
+  # 协议勾选（你最新抓到的层级是 [13]，旧的 [14] 会点到空位置）
+  agreement_checkbox_chain: ['ios_class_chain', "**/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeWebView/XCUIElementTypeWebView/XCUIElementTypeWebView/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[13]"]
+  agreement_checkbox: ['xpath', "//XCUIElementTypeApplication[@name='美图宜肤M']/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeWebView/XCUIElementTypeWebView/XCUIElementTypeWebView/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[13]"]
+  next_step: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
 
 # 检测页元素
 M_DetectPage:
@@ -58,4 +71,6 @@ M_SettingsPage:
   sc_success_button: ['xpath', "//XCUIElementTypeStaticText[@name='重新上传']"]
   confirm_button: ['xpath', "//XCUIElementTypeStaticText[@name='确定']"]
 
-
+#档案页
+M_RecordPage:
+  

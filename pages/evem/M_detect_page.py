@@ -1,4 +1,4 @@
-from pages.evev.base_page import BasePage
+from pages.evem.base_page import BasePage
 import time
 class M_DetectPage(BasePage):
     def __init__(self, driver):
@@ -32,3 +32,11 @@ class M_DetectPage(BasePage):
             # 从未出现过确认按钮，继续轮询直至超时
             time.sleep(0.5)
         self.click_element('still_button')
+
+    def take_photo_flow(self):
+        """进入检测页后执行拍照 + 后续确认流程"""
+        # 有些版本进入检测页后需要先点“拍照”
+        if self.is_element_present_by_name('camera_button', timeout=5):
+            self.click_element('camera_button')
+        # 处理弹窗/仍旧拍摄等
+        self.detect_success()

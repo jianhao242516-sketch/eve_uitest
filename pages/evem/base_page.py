@@ -98,7 +98,8 @@ class BasePage:
                 'class': AppiumBy.CLASS_NAME,
                 'tag': AppiumBy.TAG_NAME,
                 'accessibility_id': AppiumBy.ACCESSIBILITY_ID,
-                'ios_predicate': AppiumBy.IOS_PREDICATE
+                'ios_predicate': AppiumBy.IOS_PREDICATE,
+                'ios_class_chain': AppiumBy.IOS_CLASS_CHAIN,
             }
             
             return (by_mapping.get(by_type, AppiumBy.XPATH), locator)

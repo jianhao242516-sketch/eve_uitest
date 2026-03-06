@@ -82,46 +82,126 @@ class M_HomePage(BasePage):
         :param user_name: 要搜索/新建的用户名
         """
         try:
-            # 防止软关机浮窗遮挡，点击空白处
-            self.click_by_coordinates(100, 100)
+            import time
 
-            # 输入用户名进行搜索
+            # 防止浮窗/键盘遮挡，先点一下空白处
+            self.click_by_coordinates(100, 100)
+            
+            # 1) 输入用户名
             self.send_keys_element('searchuser', user_name)
 
-            # 先判断第一个搜索结果是否存在
-            if self.is_element_present_by_name('searchresult1'):
-                # 存在则点击进入
+            # 2) 触发搜索（有的版本需要点“搜索”按钮才刷新结果）
+            if self.is_element_present_by_name('search_button', timeout=1):
+                self.click_element('search_button')
+            else:
+                # 没有搜索按钮也不直接失败，给 UI 一点时间刷新结果
+                time.sleep(0.3)
+
+            # 3) 等待搜索结果或直接跳转到用户资料页（两种都兼容）
+            profile_ok = self.is_element_present_by_name('M_UserProfilePage.start_detect_button', timeout=2)
+            if not profile_ok:
+                self.wait_for_element_to_appear('searchresult1', timeout=6)
+
+            # 4) 如果出现了第一条搜索结果，点击进入
+            if self.is_element_present_by_name('searchresult1', timeout=1):
                 self.click_element('searchresult1')
 
-                # 判断是否成功进入用户资料页
-                if self.is_element_present_by_name('UserProfilePage.start_detect_button'):
-                    print(f"✅ 搜索到用户【{user_name}】，进入用户资料页成功")
-            else:
-                # 搜索结果不存在，执行新建用户逻辑
-                print(f"❌ 未找到用户【{user_name}】，开始新建用户...")
+            # 5) 以“用户资料页-开始检测”作为最终成功判定
+            if self.is_element_present_by_name('M_UserProfilePage.start_detect_button', timeout=8):
+                print(f"✅ 搜索到用户【{user_name}】，进入用户资料页成功")
+                return True
 
-                # --------------------------
-                # 以下是新建用户的核心逻辑（请根据实际页面元素补充）
-                # --------------------------
-                # 1. 点击"新建用户"按钮（示例元素名，需替换为实际值）
-                self.click_element('create_new_user_btn')
+            # 6) 未进入资料页：尝试走“新建用户”流程（仅当元素已配置且真实存在时）
+            print(f"❌ 未找到用户【{user_name}】或未能进入用户资料页，尝试新建用户分支...")
+            timeout=10
+            create_flow_candidates = [
+                # 你提供的入口按钮：新客
+                ('newuser_button', 'new_user_name_input', 'confirm_create_user_btn'),
+                # 兼容旧占位名（如果后续有人在 yaml 里按旧名加了也能跑）
+                ('create_new_user_btn', 'new_user_name_input', 'confirm_create_user_btn'),
+            ]
 
-                # 2. 输入要新建的用户名（复用传入的user_name）
-                self.send_keys_element('new_user_name_input', user_name)
+            created_new_user = False
+            for create_btn, name_input, confirm_btn in create_flow_candidates:
+                if self.is_element_present_by_name(create_btn, timeout=1):
+                    self.click_element(create_btn)
+                    # 新客建档：按照页面要求随机填充信息并下一步
+                    if create_btn == 'newuser_button':
+                        from pages.evem.M_new_user_page import M_NewUserPage
+                        # 新建用户：点完“下一步”进入拍照页即算流程结束
+                        M_NewUserPage(self.driver).create_random_user(user_name=user_name)
+                        created_new_user = True
+                    else:
+                        # 旧占位流程：如你后续在 yaml 里补齐了这些元素，也能继续工作
+                        if self.is_element_present_by_name(name_input, timeout=2):
+                            self.send_keys_element(name_input, user_name)
+                        if self.is_element_present_by_name(confirm_btn, timeout=2):
+                            self.click_element(confirm_btn)
 
-                # 3. 点击"确认创建"按钮（示例元素名，需替换为实际值）
-                self.click_element('confirm_create_user_btn')
+                    # 新客建档成功的判定已在 M_NewUserPage.create_random_user 内完成（进入拍照页/检测页）
+                    if created_new_user:
+                        print(f"✅ 用户【{user_name}】新建流程完成（已进入拍照页）")
+                        return True
 
-                # 4. 验证新建是否成功（根据实际页面元素调整判断条件）
-                if self.is_element_present_by_name('UserProfilePage.start_detect_button'):
-                    print(f"✅ 用户【{user_name}】新建成功，并进入用户资料页")
-                else:
-                    print(f"❌ 用户【{user_name}】新建失败")
+                    if self.is_element_present_by_name('M_UserProfilePage.start_detect_button', timeout=10):
+                        print(f"✅ 用户【{user_name}】新建成功，并进入用户资料页")
+                        return True
+
+                    # 已执行新客建档但未进入资料页：给出更准确的错误提示
+                    if created_new_user:
+                        try:
+                            self.screenshot("new_user_after_submit_not_detect", timestamp=True)
+                        except Exception:
+                            pass
+                        raise TimeoutError("新建用户后未进入拍照页：疑似协议未勾选生效/下一步未生效，或跳转慢导致超时")
+
+            # 7) 兜底：采集调试信息并抛出异常（避免“逻辑不生效但不报错”）
+            try:
+                self.screenshot("searchuser_failed", timestamp=True)
+                src = self.driver.page_source or ""
+                hints = []
+                for k in ["无结果", "没有找到", "新建", "创建", "用户"]:
+                    if k in src:
+                        hints.append(k)
+                if hints:
+                    print(f"ℹ️ 页面源码关键字提示: {', '.join(hints)}")
+            except Exception as debug_e:
+                print(f"⚠️ 采集调试信息失败: {debug_e}")
+
+            raise TimeoutError(
+                f"搜索用户【{user_name}】未进入用户资料页："
+                f"未出现 searchresult1，且未配置/未出现新建用户入口元素（如需新建请在 elements yaml 中补齐）"
+            )
 
         except Exception as e:
             # 捕获异常，避免方法直接崩溃
             print(f"⚠️ 搜索/新建用户【{user_name}】时出现异常：{str(e)}")
             raise e  # 可选：抛出异常让上层处理，根据测试框架需求决定
+
+    def _start_detect_and_take_photo(self):
+        """用户资料页：点击开始检测 -> 检测页执行拍照流程"""
+        import time
+        # 等待进入用户资料页
+        if not self.is_element_present_by_name('M_UserProfilePage.start_detect_button', timeout=15):
+            raise TimeoutError("新建成功后未进入用户资料页，找不到开始检测按钮（M_UserProfilePage.start_detect_button）")
+
+        # 点击开始检测
+        self.click_element('M_UserProfilePage.start_detect_button')
+        time.sleep(1)
+
+        # 进入检测页拍照
+        try:
+            from pages.evem.M_detect_page import M_DetectPage
+            detect_page = M_DetectPage(self.driver)
+            detect_page.take_photo_flow()
+        except Exception as e:
+            # 兜底：如果导入或调用失败，至少尝试直接点击相机按钮和 still_button
+            print(f"⚠️ 调用拍照流程封装失败，将使用兜底点击: {e}")
+            if self.is_element_present_by_name('M_DetectPage.camera_button', timeout=8):
+                self.click_element('M_DetectPage.camera_button')
+            # still_button/弹窗处理交给 detect_success 更稳，这里仅尽量推进
+            if self.is_element_present_by_name('M_DetectPage.still_button', timeout=10):
+                self.click_element('M_DetectPage.still_button')
 
     def check_connected(self,device_name):
         """检查是否连接成功"""
@@ -146,7 +226,11 @@ class M_HomePage(BasePage):
             print(f"❌ 未连接,尝试连接{device_name}")
             self.connect(device_name)
 
-
+    def mdgl_button(self):
+        """点击首页门店管理按钮"""
+        self.click_element('mdgl_button')
+        
+        
     def disconnect(self):
         """断开连接"""
         self.click_element('disconnect_button')

@@ -1,5 +1,6 @@
-
-- name: '登录-检测流程'
+# by ruby
+#2025-12-12
+- name: '关闭扫码权限-M'
   setup_method: 'update_login_qr_code(0)'  
   teardown_method: 'update_login_qr_code(1)'
   steps:

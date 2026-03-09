@@ -8,10 +8,13 @@ class M_LoginPage(BasePage):
     # 方法示例
     def login(self, username, password):
         """登录"""
-                # 如果已经登录（已在首页/可见首页元素），则跳过登录步骤
+        # 如果已经登录（已在首页），则跳过登录步骤：
+        # 条件：同时存在首页搜索框和“门店管理”按钮，避免误判到其他页面
         try:
-            if self.is_element_present_by_name('M_HomePage.searchuser', timeout=2):
-                print("✅ 检测到账号已登录，跳过登录步骤")
+            has_search = self.is_element_present_by_name('M_HomePage.searchuser', timeout=2)
+            has_mdgl = self.is_element_present_by_name('M_HomePage.mdgl_button', timeout=2)
+            if has_search and has_mdgl:
+                print("✅ 检测到首页元素 searchuser + mdgl_button，判定账号已登录，跳过登录步骤")
                 return
         except Exception:
             # 探测失败不影响后续正常登录流程

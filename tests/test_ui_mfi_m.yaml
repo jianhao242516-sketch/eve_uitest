@@ -47,7 +47,7 @@
         - method: 'wait'
           params: 2
         - method: 'click_element'
-          params: 'mdgl_button'
+          params: 'store_management_button'
     - page: 'M_SettingsPage'
       actions:
         - method: 'click_element'

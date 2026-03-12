@@ -12,9 +12,9 @@ class M_LoginPage(BasePage):
         # 条件：同时存在首页搜索框和“门店管理”按钮，避免误判到其他页面
         try:
             has_search = self.is_element_present_by_name('M_HomePage.searchuser', timeout=2)
-            has_mdgl = self.is_element_present_by_name('M_HomePage.mdgl_button', timeout=2)
+            has_mdgl = self.is_element_present_by_name('M_HomePage.store_management_button', timeout=2)
             if has_search and has_mdgl:
-                print("✅ 检测到首页元素 searchuser + mdgl_button，判定账号已登录，跳过登录步骤")
+                print("✅ 检测到首页元素 searchuser + store_management_button，判定账号已登录，跳过登录步骤")
                 return
         except Exception:
             # 探测失败不影响后续正常登录流程

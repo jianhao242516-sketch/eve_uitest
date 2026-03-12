@@ -157,7 +157,7 @@ if __name__ == '__main__':
     sys.argv = [
         sys.argv[0],  # 保留脚本名
         '--bundleId', 'com.meitu.MTEveEnterpriseMagic',  # M包名
-        '--test', 'tests/test_api_M1.yaml',  # 业务脚本，可多个
+        '--test', 'tests/test_api_M2.yaml',  # 业务脚本，可多个
         '--base_port', '4723',  # Appium的port
         '--device', 'iPad9',  # 设备名称
 
@@ -168,4 +168,5 @@ if __name__ == '__main__':
     #先运行appium服务：appium server --base-path /wd/hub -p 4723 
     #再打开xcode
     #再运行脚本：python3 main/run_ui.py
+    #编号18 ipad9
     

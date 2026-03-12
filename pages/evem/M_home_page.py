@@ -226,9 +226,9 @@ class M_HomePage(BasePage):
             print(f"❌ 未连接,尝试连接{device_name}")
             self.connect(device_name)
 
-    def mdgl_button(self):
+    def store_management_button(self):
         """点击首页门店管理按钮"""
-        self.click_element('mdgl_button')
+        self.click_element('store_management_button')
         
         
     def disconnect(self):

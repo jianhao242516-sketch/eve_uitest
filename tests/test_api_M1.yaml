@@ -23,7 +23,7 @@
       actions:
         # 如果是老用户：在资料页点击“开始检测”
         # 如果是新用户：已直接进入拍照页，此方法内部会检测不到按钮并安全跳过
-        - method: 'click_start_detect_if_exists'
+        - method: 'click_start_detect_if_exists' #门店管理按钮
         - method: 'screenshot'
           params: 'start_detect_button'
     - page: 'M_DetectPage'

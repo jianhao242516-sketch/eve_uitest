@@ -14,7 +14,7 @@ M_HomePage:
   connect_password_button: ['xpath', "//XCUIElementTypeButton[@name='连接']"]
   # 作为连接成功后的判定备用（与 connected_button 等价，便于代码复用）
   connect_disconnect_button: ['xpath', "//*[@name='连接良好' or contains(@name,'连接良好')]"]
-  mdgl_button: ['xpath', "//XCUIElementTypeStaticText[@name='门店管理']"]
+  store_management_button: ['xpath', "//XCUIElementTypeStaticText[@name='门店管理']"]
   nm_ksjc_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
   nm_next_button: ['xpath', "//XCUIElementTypeStaticText[@name='下一步']"]
   newuser_button: ['xpath', "//XCUIElementTypeButton[@name='新客']"]
@@ -71,6 +71,10 @@ M_SettingsPage:
   sc_success_button: ['xpath', "//XCUIElementTypeStaticText[@name='重新上传']"]
   confirm_button: ['xpath', "//XCUIElementTypeStaticText[@name='确定']"]
 
-#档案页
-M_RecordPage:
+#门店管理
+M_store_management_Page:
+  customer_profile: ['xpath', "//XCUIElementTypeStaticText[@name='顾客档案']"]
+#顾客档案 
+M_customer_Page:
   
+

@@ -17,7 +17,7 @@
         - method: 'check_connected'
           params: 'M_s300023'
         - method: 'searchuser'
-          params: '0306r2'
+          params: '0312@'
         - method: 'screenshot'
     - page: 'M_UserProfilePage'
       actions:
@@ -38,12 +38,8 @@
         - method: 'swipe_up'
         - method: 'screenshot'
           params: 'end'
-        - method: 'click_by_coordinates' #左上角坐标返回
-          params: [20, 45]
-        - method: 'click_by_coordinates' #左上角坐标返回
-          params: [20, 45]
-        - method: 'click_by_coordinates' #左上角坐标返回
-          params: [20, 45]
+        - method: 'report_operation_methods'
+          params: [59, 161]
         - method: 'close_app'
 #- name: '关闭首页logo-M'
 #  setup_method: "update_module_ext_common({'saas_change_logo': 0})"

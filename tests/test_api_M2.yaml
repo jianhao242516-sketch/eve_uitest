@@ -6,8 +6,22 @@
       actions:
         - method: 'store_management_button'
         - method: 'wait'
-          params: 2
+          params: 5
     - page: 'M_store_management_Page'
       actions:
         - method: 'open_customer_profile_detail'
-      
+    - page: 'M_UserProfilePage'
+      actions:
+        - method: 'new_report_button'
+        - method: 'wait'  
+          params: 5
+    - page: 'M_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 400]
+        - method: 'report_operation_methods'
+          params: [59, 161]
+
+
+
+

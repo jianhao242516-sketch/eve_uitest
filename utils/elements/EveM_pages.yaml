@@ -23,6 +23,10 @@ M_UserProfilePage:
   start_detect_button: ['xpath', "//XCUIElementTypeStaticText[@name='开始检测']"]
   user_avatar: ['xpath', "//XCUIElementTypeImage[@name='头像']"]
   username_label: ['xpath', "//XCUIElementTypeStaticText[@name='用户名']"]
+  # 最新报告/新建报告按钮 - 优先用 ios class chain
+  new_report_button: ['ios_class_chain', "**/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeScrollView/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeButton"]
+  # 备用 xpath:
+  # ['xpath', "//XCUIElementTypeApplication[@name='美图宜肤M']/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeScrollView/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeButton"]
 
 # 新建用户页（新客建档）
 M_NewUserPage:
@@ -60,6 +64,8 @@ M_LoginPage:
   # 报告页元素
 M_ReportPage:
   zhfx: ['xpath', "//XCUIElementTypeStaticText[@name='综合分析']"]
+  content_scroll: ['ios_class_chain', "**/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther"]
+  content_scroll_xpath: ['xpath', "//XCUIElementTypeApplication[@name='美图宜肤M']/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther"]
 
 
 M_SettingsPage:

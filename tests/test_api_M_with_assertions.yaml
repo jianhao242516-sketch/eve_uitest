@@ -1,0 +1,158 @@
+# M端完整测试用例 - 带断言版本
+# 用例1: 登录-检测完整流程
+
+- name: 'M端登录-检测完整流程'
+  setup_method: 'update_login_qr_code(0)'  
+  teardown_method: 'update_login_qr_code(1)'
+  steps:
+    # 登录页
+    - page: 'M_LoginPage'
+      actions:
+        - method: 'open_app'
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'assert_login_page_loaded'
+        - method: 'login'
+          params: ['zjhm002', 'a123456@']
+    
+    # 首页
+    - page: 'M_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3  
+        - method: 'assert_home_page_loaded'
+        - method: 'check_connected'
+          params: 'M_s300023'
+        - method: 'assert_connected'
+        - method: 'searchuser'
+          params: '0312@'
+        - method: 'screenshot'
+    
+    # 用户资料页
+    - page: 'M_UserProfilePage'
+      actions:
+        - method: 'assert_user_profile_page_loaded'
+        - method: 'click_start_detect_if_exists'
+        - method: 'assert_start_detect_button_exists'
+        - method: 'screenshot'
+          params: 'start_detect_button'
+    
+    # 检测页
+    - page: 'M_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'assert_detect_page_loaded'
+        - method: 'detect_success'
+        - method: 'assert_detect_complete'
+    
+    # 报告页
+    - page: 'M_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 400]
+        - method: 'assert_report_page_loaded'
+        - method: 'swipe_up'
+        - method: 'screenshot'
+          params: 'end'
+        - method: 'report_operation_methods'
+          params: [59, 161]
+        - method: 'close_app'
+
+
+# 用例2: 从门店管理进入用户资料页流程
+
+- name: 'M端门店管理-查看报告流程'
+  setup_method: 'update_login_qr_code(0)'  
+  teardown_method: 'update_login_qr_code(1)'
+  steps:
+    # 登录页
+    - page: 'M_LoginPage'
+      actions:
+        - method: 'open_app'
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'assert_login_page_loaded'
+        - method: 'login'
+          params: ['zjhm002', 'a123456@']
+    
+    # 首页
+    - page: 'M_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3  
+        - method: 'assert_home_page_loaded'
+        - method: 'store_management_button'
+        - method: 'wait'
+          params: 2
+    
+    # 门店管理页
+    - page: 'M_store_management_Page'
+      actions:
+        - method: 'assert_store_management_page_loaded'
+        - method: 'open_customer_profile_detail'
+    
+    # 用户资料页
+    - page: 'M_UserProfilePage'
+      actions:
+        - method: 'assert_user_profile_page_loaded'
+        - method: 'new_report_button'
+        - method: 'wait'
+          params: 3
+    
+    # 报告页
+    - page: 'M_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 400]
+        - method: 'assert_report_page_loaded'
+        - method: 'report_operation_methods'
+          params: [59, 161]
+
+
+# 用例3: 匿名检测流程（无用户）
+
+- name: 'M端匿名检测流程'
+  setup_method: 'update_login_qr_code(0)'  
+  teardown_method: 'update_login_qr_code(1)'
+  steps:
+    # 登录页
+    - page: 'M_LoginPage'
+      actions:
+        - method: 'open_app'
+        - method: 'check_and_handle_popups'
+          params: 3
+        - method: 'assert_login_page_loaded'
+        - method: 'login'
+          params: ['zjhm002', 'a123456@']
+    
+    # 首页 - 匿名检测
+    - page: 'M_HomePage'
+      actions:
+        - method: 'check_and_handle_popups'
+          params: 3  
+        - method: 'assert_home_page_loaded'
+        - method: 'check_connected'
+          params: 'M_s300023'
+        - method: 'assert_connected'
+        - method: 'click_element'
+          params: 'nm_ksjc_button'
+        - method: 'click_element'
+          params: 'nm_next_button'
+    
+    # 检测页
+    - page: 'M_DetectPage'
+      actions:
+        - method: 'wait'
+          params: 2
+        - method: 'assert_detect_page_loaded'
+        - method: 'detect_success'
+        - method: 'assert_detect_complete'
+    
+    # 报告页
+    - page: 'M_ReportPage'
+      actions:
+        - method: 'wait_for_element_to_appear'
+          params: ['zhfx', 400]
+        - method: 'assert_report_page_loaded'
+        - method: 'close_app'

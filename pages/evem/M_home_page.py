@@ -212,6 +212,7 @@ class M_HomePage(BasePage):
             or self.is_element_present_by_name('connected_button_2', timeout=3)
         if found:
             print("✅ 已连接")
+            return True
         else:
             print("❌ 未连接")
             # 兜底：截图并尝试在页面源码里查找关键字，便于定位差异
@@ -225,6 +226,22 @@ class M_HomePage(BasePage):
                 print(f"⚠️ 采集调试信息失败: {e}")
             print(f"❌ 未连接,尝试连接{device_name}")
             self.connect(device_name)
+    
+    def assert_connected(self):
+        """断言设备已连接 - 验证连接状态"""
+        found = self.is_element_present_by_name('connected_button', timeout=5) \
+            or self.is_element_present_by_name('connected_button_1', timeout=5) \
+            or self.is_element_present_by_name('connected_button_2', timeout=5)
+        if not found:
+            raise AssertionError("设备未连接：未找到连接状态元素")
+        print("✅ 断言通过：设备已连接")
+        return True
+    
+    def assert_home_page_loaded(self):
+        """断言首页已加载 - 验证门店管理按钮存在"""
+        self.assert_element_exists('store_management_button')
+        print("✅ 断言通过：首页已加载")
+        return True
 
     def store_management_button(self):
         """点击首页门店管理按钮"""

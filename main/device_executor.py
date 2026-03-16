@@ -289,6 +289,8 @@ def run_case_on_device(device_info, bundle_id, yaml_path, run_number=1, results_
                     prefix = 'M_' if page_name.startswith('M_') else 'V_'
                     clean_page_name = page_name.replace(prefix, '')  # M_LoginPage -> LoginPage / V_LoginPage -> LoginPage
                     module_base = re.sub(r'(?<!^)(?=[A-Z])', '_', clean_page_name).lower()  # LoginPage -> login_page
+                    # 兼容包含下划线的驼峰命名（如 store_management_Page），避免生成 store_management__page 这种双下划线
+                    module_base = re.sub(r'_+', '_', module_base)
                     module_name_upper_pref = f"{prefix}{module_base}"         # M_login_page / V_login_page
                     module_name_lower_pref = f"{prefix.lower()}{module_base}" # m_login_page / v_login_page
                     module_name_no_pref = module_base                          # login_page

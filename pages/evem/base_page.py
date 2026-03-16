@@ -3,6 +3,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import yaml
 import os
+import time
 
 # 所有页面类都继承自 BasePage，负责提供：
 # 元素定位封装（find, click, send_keys）
@@ -17,6 +18,7 @@ class BasePage:
         self.wait = WebDriverWait(driver, 10)
         self._load_elements()
         self._load_popups()
+        self._screen_size = None  # 缓存屏幕尺寸
     
     def _load_elements(self):
         """加载元素配置文件
@@ -272,6 +274,12 @@ class BasePage:
             print(f"❌ 滑动失败: ({start_x}, {start_y}) -> ({end_x}, {end_y}) - {e}")
             return False
 
+    def _get_screen_size(self):
+        """获取屏幕尺寸（带缓存）"""
+        if self._screen_size is None:
+            self._screen_size = self.driver.get_window_size()
+        return self._screen_size
+    
     def swipe_up(self, start_y=None, distance=500):
         """向上滑动
         
@@ -280,12 +288,10 @@ class BasePage:
             distance: 滑动距离（像素），默认500
         """
         try:
-            # 获取屏幕尺寸
-            size = self.driver.get_window_size()
+            size = self._get_screen_size()
             width = size['width']
             height = size['height']
             
-            # 默认从屏幕中部向上滑动
             if start_y is None:
                 start_y = height // 2
             
@@ -312,7 +318,7 @@ class BasePage:
             distance: 滑动距离（像素），默认500
         """
         try:
-            size = self.driver.get_window_size()
+            size = self._get_screen_size()
             width = size['width']
             height = size['height']
             
@@ -342,7 +348,7 @@ class BasePage:
             distance: 滑动距离（像素），默认300
         """
         try:
-            size = self.driver.get_window_size()
+            size = self._get_screen_size()
             width = size['width']
             height = size['height']
             
@@ -372,7 +378,7 @@ class BasePage:
             distance: 滑动距离（像素），默认300
         """
         try:
-            size = self.driver.get_window_size()
+            size = self._get_screen_size()
             width = size['width']
             height = size['height']
             
@@ -415,7 +421,6 @@ class BasePage:
             timestamp: 是否在文件名中添加时间戳
         """
         import os
-        import time
         from datetime import datetime
         
         # 基础截图目录（现在 base_page.py 在子目录中，需要多一层 dirname）
@@ -494,6 +499,18 @@ class BasePage:
         except:
             return False
 
+    def click_start_detect_if_exists(self, element_name='start_detect_button', timeout=3):
+        """
+        如果存在“开始检测”按钮则点击；若不存在则安全跳过。
+        常见于：资料页存在按钮；新建用户后可能直接进入拍照页而没有该按钮。
+        """
+        if self.is_element_present_by_name(element_name, timeout=timeout):
+            self.click_element(element_name)
+            return True
+
+        print(f"ℹ️ 未找到 {self.__class__.__name__}.{element_name}，可能已直接进入拍照页，跳过点击。")
+        return True
+
     def wait_for_element_to_appear(self, element_name, timeout=30):
         """等待指定元素出现
         
@@ -568,12 +585,15 @@ class BasePage:
         """处理可能的弹窗（包括系统弹窗）"""
         popup_handled = False
         
+        if not BasePage._popups or 'popups' not in BasePage._popups:
+            return popup_handled
+        
         print("🔍 开始检查弹窗...")
         
         for popup in BasePage._popups.get('popups', []):
             try:
-                # 对于系统弹窗，使用稍长的超时时间（1.5秒），普通弹窗使用更短的超时（0.5秒）以加快检查速度
-                timeout = 1.5 if '系统' in popup.get('description', '') or '权限' in popup.get('description', '') else 0.5
+                # 对于系统弹窗，使用稍短的超时时间
+                timeout = 0.3 if '系统' in popup.get('description', '') or '权限' in popup.get('description', '') else 0.2
                 
                 # 检查弹窗是否存在
                 if self.is_element_present(AppiumBy.XPATH, popup['xpath'], timeout=timeout):
@@ -587,21 +607,18 @@ class BasePage:
                         pass  # 截图失败不影响弹窗处理
                     
                     # 点击弹窗按钮
-                    # 对于系统弹窗，使用更宽松的等待
                     try:
                         self.click(AppiumBy.XPATH, popup['xpath'])
                         print(f"✅ 已点击弹窗: {popup['description']}")
                         popup_handled = True
                         
                         # 等待一下让弹窗消失
-                        import time
-                        time.sleep(1.5)  # 系统弹窗可能需要更长时间消失
+                        time.sleep(0.8)  # 减少等待时间
                         break  # 处理一个弹窗后退出
                     except Exception as click_error:
-                        # 如果点击失败，尝试使用坐标点击（对于系统弹窗）
+                        # 如果点击失败，尝试使用坐标点击
                         print(f"⚠️ 使用XPath点击失败，尝试查找元素位置: {click_error}")
                         try:
-                            # 尝试获取元素并点击
                             element = self.driver.find_element(AppiumBy.XPATH, popup['xpath'])
                             location = element.location
                             size = element.size
@@ -610,15 +627,12 @@ class BasePage:
                             self.driver.tap([(center_x, center_y)])
                             print(f"✅ 已通过坐标点击弹窗: {popup['description']}")
                             popup_handled = True
-                            import time
-                            time.sleep(1.5)
+                            time.sleep(0.8)
                             break
                         except Exception as coord_error:
                             print(f"⚠️ 坐标点击也失败: {coord_error}")
                             continue
             except Exception as e:
-                # 弹窗处理失败，继续检查下一个
-                print(f"⚠️ 处理弹窗失败: {popup['description']} - {e}")
                 continue
         
         if not popup_handled:
@@ -720,9 +734,7 @@ class BasePage:
         Args:
             bundle_id: app的bundleId或appPackage，如果不提供则从环境变量获取
         """
-        import time
         try:
-            # 如果没有提供bundle_id，从环境变量获取
             if bundle_id is None:
                 bundle_id = os.environ.get('CURRENT_BUNDLE_ID')
                 if not bundle_id:
@@ -732,7 +744,7 @@ class BasePage:
             print(f"🔒 正在关闭app: {bundle_id}")
             self.driver.terminate_app(bundle_id)
             print(f"✅ App已关闭")
-            time.sleep(1)  # 等待关闭完成
+            time.sleep(0.5)  # 等待关闭完成
             return True
         except Exception as e:
             print(f"❌ 关闭app失败: {e}")
@@ -744,9 +756,7 @@ class BasePage:
         Args:
             bundle_id: app的bundleId或appPackage，如果不提供则从环境变量获取
         """
-        import time
         try:
-            # 如果没有提供bundle_id，从环境变量获取
             if bundle_id is None:
                 bundle_id = os.environ.get('CURRENT_BUNDLE_ID')
                 if not bundle_id:
@@ -756,12 +766,11 @@ class BasePage:
             print(f"🚀 正在打开app: {bundle_id}")
             self.driver.execute_script("mobile: launchApp", {"bundleId": bundle_id})
             print(f"✅ App已打开")
-            time.sleep(2)  # 等待app启动
+            time.sleep(1)  # 等待app启动
             return True
         except Exception as e:
             print(f"❌ 打开app失败: {e}")
             return False
-
 
 
 def initialize_app(driver):
@@ -803,27 +812,27 @@ def initialize_app(driver):
             # 点击 doraemon logo dark 按钮
             print("🔧 点击 doraemon logo dark 按钮...")
             init_page.click(AppiumBy.XPATH, "//XCUIElementTypeButton[@name='doraemon logo dark']")
-            time.sleep(1)
+            time.sleep(0.5)
             
             # 点击"小恶魔"文本
             print("🔧 点击小恶魔...")
             init_page.click(AppiumBy.XPATH, "//XCUIElementTypeStaticText[@name='小恶魔']")
-            time.sleep(1)
+            time.sleep(0.5)
             
             # 点击"OTA自动化-屏蔽网线直连"开关
             print("🔧 点击 OTA自动化-屏蔽网线直连 开关...")
             init_page.click(AppiumBy.XPATH, "//XCUIElementTypeSwitch[@name='OTA自动化-屏蔽网线直连']")
-            time.sleep(0.5)
+            time.sleep(0.3)
             
             # 点击"OTA自动化-屏蔽标定弹窗"开关
             print("🔧 点击 OTA自动化-屏蔽标定弹窗 开关...")
             init_page.click(AppiumBy.XPATH, "//XCUIElementTypeSwitch[@name='OTA自动化-屏蔽标定弹窗']")
-            time.sleep(0.5)
+            time.sleep(0.3)
             
             # 点击"关闭"按钮
             print("🔧 点击关闭按钮...")
             init_page.click(AppiumBy.XPATH, "//XCUIElementTypeButton[@name='关闭']")
-            time.sleep(1)
+            time.sleep(0.5)
             
             print("✅ 初始化配置完成")
         except Exception as init_error:

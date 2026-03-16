@@ -29,9 +29,21 @@ class M_LoginPage(BasePage):
         self.click_element('password_input')
         self.send_keys_element('password_input', password)
         self.click_element('login_button')
-        #断言登录成功
-        self.assert_element_exists('M_HomePage.searchuser')
+        
+        # 断言登录成功：等待首页元素出现
+        self.assert_login_success()
+    
+    def assert_login_success(self):
+        """断言登录成功 - 验证首页元素出现"""
+        self.wait_for_element_to_appear(['M_HomePage.searchuser', 30])
+        self.wait_for_element_to_appear(['M_HomePage.store_management_button', 10])
+        print("✅ 断言通过：登录成功，已进入首页")
 
     def login_out(self):
         """登出"""
         self.click_element('logout_button')
+    
+    def assert_login_page_loaded(self):
+        """断言登录页已加载 - 验证登录按钮存在"""
+        self.assert_element_exists('login_button')
+        print("✅ 断言通过：登录页已加载")

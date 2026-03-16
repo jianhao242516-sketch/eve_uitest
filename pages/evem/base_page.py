@@ -521,6 +521,9 @@ class BasePage:
         Args:
             element_name: 元素名称（字符串）或 [元素名称, 超时时间]（列表）
             timeout: 超时时间（秒），如果 element_name 是列表则忽略此参数
+        
+        Special behavior:
+            - 当等待 'zhfx' 元素出现后，会自动检测是否存在，如存在则上划至最底部
         """
         import time
         
@@ -531,6 +534,9 @@ class BasePage:
         else:
             actual_element_name = element_name
             actual_timeout = timeout
+        
+        # 检查是否是 zhfx 元素，需要在出现后上划
+        is_zhfx_element = actual_element_name == 'zhfx'
         
         try:
             by, locator = self._get_locator(self.page_name, actual_element_name)
@@ -546,6 +552,10 @@ class BasePage:
         while time.time() - start_time < actual_timeout:
             if self.is_element_present(by, locator, timeout=0.5):
                 print(f"✅ 元素 {actual_element_name} 已出现")
+                # 如果是 zhfx 元素，检查是否存在并上划
+                if is_zhfx_element:
+                    print(f"ℹ️ 元素 {actual_element_name} 存在，上划至最底部")
+                    self.swipe(500, 800, 500, 200)
                 return True
             time.sleep(0.5)  # 每0.5秒检查一次
         

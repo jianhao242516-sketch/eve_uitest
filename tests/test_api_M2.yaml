@@ -19,8 +19,23 @@
       actions:
         - method: 'wait_for_element_to_appear'
           params: ['zhfx', 400]
-        - method: 'report_operation_methods'
+        - method: 'report_operation_methods' #毛孔
           params: [59, 161]
+        - method: 'report_operation_methods' #黑头
+          params: [51, 215]
+        - method: 'report_operation_methods' #皱纹
+          params: [51, 323]
+        - method: 'report_operation_methods' #痤疮
+          params: [51, 381]
+        - method: 'report_operation_methods' #敏感度
+          params: [51, 435]
+        - method: 'report_operation_methods' #黑眼圈
+          params: [51, 493]
+        - method: 'report_operation_methods' #光泽度
+          params: [51, 551] 
+        - method: 'report_operation_methods' #痘坑
+          params: [51, 609]
+  
 
 
 

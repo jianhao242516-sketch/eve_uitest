@@ -64,8 +64,8 @@ M_LoginPage:
   # 报告页元素
 M_ReportPage:
   zhfx: ['xpath', "//XCUIElementTypeStaticText[@name='综合分析']"]
-  content_scroll: ['ios_class_chain', "**/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther"]
-  content_scroll_xpath: ['xpath', "//XCUIElementTypeApplication[@name='美图宜肤M']/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther"]
+  content_scroll: ['ios_class_chain', "**/XCUIElementTypeStaticText[`name == ‘’`]"]
+  content_scroll_xpath: ['xpath', "	//XCUIElementTypeStaticText[@name='']"]
 
 
 M_SettingsPage:
